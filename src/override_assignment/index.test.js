@@ -4,7 +4,7 @@ const ANALYSIS = 'override_assignment'
 
 const runner = new Runner()
 
-describe('Override Analysis Test Cases', () => {
+describe('Override Assignment Analysis Test Cases', () => {
     test.each([
         { testCase: 'example', conflict: true },
         { testCase: 'addition_to_array', conflict: true },
@@ -15,6 +15,7 @@ describe('Override Analysis Test Cases', () => {
         { testCase: 'base', conflict: false },
         { testCase: 'base_conflict', conflict: true },
         { testCase: 'both_marking', conflict: true },
+        { testCase: 'call_graph', conflict: true },
     ])('$testCase, conflict: $conflict', ({ testCase, conflict }) => {
         const logSpy = jest.spyOn(console, 'log')
         runner.runAnalyses(ANALYSIS, testCase)
