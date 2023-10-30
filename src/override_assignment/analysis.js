@@ -324,7 +324,7 @@ class MergeController {
 }(J$));
 
 /*
- node src/js/commands/jalangi.js --inlineIID --inlineSource --initParam testCase:example --analysis src/js/sample_analyses/ChainedAnalyses.js --analysis src/js/runtime/SMemory.js --analysis experiments/override_assignment/analysis.js experiments/override_assignment/test_cases/example/index.js
+ node ../jalangi2/src/js/commands/jalangi.js --inlineIID --inlineSource --initParam testCase:example --analysis ./jalangi2/src/js/sample_analyses/ChainedAnalyses.js --analysis ./jalangi2/src/js/runtime/SMemory.js --analysis src/override_assignment/analysis.js src/override_assignment/test_cases/example/index.js
  node src/js/commands/jalangi.js --inlineIID --inlineSource --analysis src/js/sample_analyses/ChainedAnalyses.js --analysis src/js/runtime/SMemory.js --analysis src/js/sample_analyses/pldi16/LogLoadStore.js tests/pldi16/CountObjectsPerAllocationSiteTest.js
  node src/js/commands/esnstrument_cli.js --inlineIID --inlineSource --analysis src/js/sample_analyses/ChainedAnalyses.js --analysis src/js/runtime/SMemory.js --analysis src/js/sample_analyses/pldi16/LogLoadStore.js --out /tmp/pldi16/CountObjectsPerAllocationSiteTest.html  tests/pldi16/CountObjectsPerAllocationSiteTest.html
  node src/js/commands/esnstrument_cli.js --inlineIID --inlineSource --analysis src/js/sample_analyses/ChainedAnalyses.js --analysis src/js/runtime/SMemory.js --analysis src/js/sample_analyses/pldi16/LogLoadStore.js --out /tmp/pldi16/CountObjectsPerAllocationSiteTest.js  tests/pldi16/CountObjectsPerAllocationSiteTest.js
