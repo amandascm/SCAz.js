@@ -1,0 +1,16 @@
+{
+  "name": "scaz",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "pretest:analyses": "cd jalangi2 && npm i && cd ..",
+    "test:analyses": "jest src/*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
