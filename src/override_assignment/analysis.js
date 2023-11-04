@@ -65,7 +65,7 @@ class FunctionCall extends Occurrence {
     }
 
     getTrace() {
-        return `${this.getLocation()} in ${this.name}`
+        return `    at ${this.getName()} ${this.getLocation()}`
     }
 
     isBeforeInvoke() {
@@ -118,6 +118,11 @@ class FunctionCallStack {
 
     isEmpty() {
         return this.stack.length === 0
+    }
+
+    log() {
+        console.log(`Interference detected`)
+        this.stack.reverse().forEach(f => console.log(f.getTrace()))
     }
 }
 
@@ -184,7 +189,10 @@ class OverrideAssignmentController {
         const currentBranch = assignment.getBranch()
         if (currentBranch) {
             const interference = this._assignmentExistsOnOtherBranch(assignment)
-            interference?.log()
+            if (interference) {
+                this.functionCallStack.log()
+                interference.log()
+            }
 
             const assignmentIdentifier = assignment.getLHSIdentifier()
             if (!this.branchAssignmentSets[currentBranch]) {
@@ -282,7 +290,6 @@ class MergeController {
                     overrideAssignmentController.assignmentHandler(assignment)
                 }
             }
-
             overrideAssignmentController.functionHandler(new FunctionCall(functionIid, f.name, location, true))
         };
 
