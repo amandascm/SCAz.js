@@ -16,6 +16,7 @@ describe('Override Assignment Analysis Test Cases', () => {
         { testCase: 'base_conflict', conflict: true },
         { testCase: 'both_marking', conflict: true },
         { testCase: 'call_graph', conflict: true },
+        { testCase: 'chained_methods_call', conflict: true },
     ])('$testCase, conflict: $conflict', ({ testCase, conflict }) => {
         const logSpy = jest.spyOn(console, 'log')
         runner.runAnalyses(ANALYSIS, testCase)
