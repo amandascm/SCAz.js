@@ -6,7 +6,7 @@
  *
  */
 const path = require('node:path')
-const utils = require(path.join(__dirname,'utils.js'))
+const utils = require('./utils')
 // const { Assignment } = require(path.join(__dirname, 'src', 'entities', 'assignment.js'))
 
 const TEST_CASE = J$.initParams.testCase
@@ -295,7 +295,6 @@ class MergeController {
 
         this.invokeFun = function (iid, f, base, args, result, isConstructor, isMethod, functionIid, functionSid) {
             const location = J$.iidToLocation(J$.sid, iid)
-            const line = utils.getSourceFileCorrespondingLine(location)
             overrideAssignmentController.functionHandler(new FunctionCall(functionIid, f.name, location, false))
         };
 
