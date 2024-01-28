@@ -5,14 +5,13 @@
  * @author  Koushik Sen
  *
  */
-const path = require('node:path')
 const utils = require('./utils')
-// const { Assignment } = require(path.join(__dirname, 'src', 'entities', 'assignment.js'))
-
-const TEST_CASE = J$.initParams.testCase
 
 // Input: represents all lines that came from Left (L) or Right (R) branches - the rest is assumed to be from base
-const LINE_TO_BRANCH_MAP = require(path.join(__dirname, 'test_cases', `${TEST_CASE}`, 'line_to_branch_map.json'))
+if (!J$.initParams.lineToBranchMapPath) {
+    throw new Error('No lines to branch map provided')
+}
+const LINE_TO_BRANCH_MAP = require(J$.initParams.lineToBranchMapPath)
 
 class Occurrence {
     constructor(id, name, location) {

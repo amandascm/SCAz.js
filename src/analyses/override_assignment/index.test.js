@@ -1,6 +1,8 @@
-const { Runner } = require('../runner')
+const { Runner } = require('../../runner')
+const { AVAILABLE_ANALYSES_DIR } = require('../../config')
 
 const ANALYSIS = 'override_assignment'
+const ANALYSIS_PATH = `${AVAILABLE_ANALYSES_DIR}/${ANALYSIS}`
 
 const runner = new Runner()
 
@@ -43,7 +45,7 @@ describe('Override Assignment Analysis Test Cases', () => {
         { testCase: 'local_variables_with_parameter', conflict: false },
     ])('$testCase, conflict: $conflict', ({ testCase, conflict }) => {
         const logSpy = jest.spyOn(console, 'log')
-        runner.runAnalyses(ANALYSIS, testCase)
+        runner.runAnalyses(ANALYSIS, `${ANALYSIS_PATH}/test_cases/${testCase}/index.js`, `${ANALYSIS_PATH}/test_cases/${testCase}/line_to_branch_map.json`)
         const expected = conflict
             ? expect.stringContaining('Output')
             : expect.stringContaining('No output')

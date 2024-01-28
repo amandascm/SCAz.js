@@ -1,142 +1,111 @@
 const { exec, execSync } = require('child_process')
 const path = require('path')
-const fs = require('fs')
+const { ALLOWED_CONFLICT_ANALYSES, BASE_DIR, AVAILABLE_ANALYSES_DIR } = require('./config')
+const { listDirectoriesInBaseDir } = require('./utils/file')
 
-
-// Initialize variables to store argument values
-const DEFAULT_TO_ALL = 'all'
-// Define allowed values for --conflictAnalysis
-const ALLOWED_CONFLICT_ANALYSES = ['override_assignment']
-// Paths
-let BASE_DIR = path.join(__dirname, '..')
-let AVAILABLE_ANALYSES_DIR = path.join(BASE_DIR, 'src')
 
 class AnalysisUnit {
-  constructor(conflictAnalysis, testCase, command) {
+  constructor(conflictAnalysis, inputPath, command) {
     this.conflictAnalysis= conflictAnalysis
-    this.testCase = testCase, 
+    this.inputPath = inputPath, 
     this.command = command
   }
 }
 
 class Runner {
   constructor () {
-    this.testCaseValue = DEFAULT_TO_ALL // Default value for testCase
-    this.conflictAnalysisValue = DEFAULT_TO_ALL // Default value for conflictAnalysis
+    this.inputPath = undefined // Default value for inputPath
+    this.lineToBranchMapPath = undefined // Default value for lineToBranchMapPath
+    this.conflictAnalysisValue = undefined // Default value for conflictAnalysis
   }
 
-  updateParamsWithArguments = () => {
+  runFromCLI = () => {
     // Process command-line arguments
     for (let i = 2; i < process.argv.length; i++) {
       const arg = process.argv[i]
-      if (arg.startsWith('--testCase=')) {
-        // Extract the value following '--testCase'
-        this.testCaseValue = arg.substring('--testCase='.length)
+      if (arg.startsWith('--inputPath=')) {
+        // Extract the value following '--inputPath'
+        this.inputPath = arg.substring('--inputPath='.length)
+      } else if (arg.startsWith('--lineToBranchMapPath=')) {
+        // Extract the value following '--lineToBranchMapPath'
+        this.lineToBranchMapPath = arg.substring('--lineToBranchMapPath='.length)
       } else if (arg.startsWith('--conflictAnalysis=')) {
         // Extract the value following '--conflictAnalysis'
         const providedValue = arg.substring('--conflictAnalysis='.length)
         if (ALLOWED_CONFLICT_ANALYSES.includes(providedValue)) {
-          conflictAnalysisValue = providedValue
-        } else {
-          console.log('Invalid conflictAnalysis value provided.')
-          return
+          this.conflictAnalysisValue = providedValue
         }
       }
     }
+    if (!this.inputPath) {
+      throw Error('Invalid inputPath value provided.')
+    }
+    if (!this.lineToBranchMapPath) {
+      throw Error('Invalid lineToBranchMapPath value provided.')
+    }
+    if (!this.conflictAnalysisValue) {
+      console.warn('Invalid or missing conflictAnalysis value provided. Running all analyses...')
+    }
+
+    console.log(`Input path value: ${this.inputPath}`)
+    console.log(`Conflict analysis value: ${this.conflictAnalysisValue ?? 'all available'}`)
+    this.runAnalyses(this.conflictAnalysisValue, this.inputPath, this.lineToBranchMapPath)
   
-    console.log(`Test case value: ${this.testCaseValue}`)
-    console.log(`Conflict analysis value: ${conflictAnalysisValue}`)
   }
 
-  buildAnalysisUnit = (testCase, conflictAnalysis) => {
+  buildAnalysisUnit = (conflictAnalysis, inputPath, lineToBranchMapPath) => {
     const chainedAnalysesPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'sample_analyses', 'ChainedAnalyses.js')
     const smemoryAnalysisPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'runtime', 'SMemory.js')
     const jalangiPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'commands', 'jalangi.js')
     
     return new AnalysisUnit(
       conflictAnalysis,
-      testCase,
-      `node ${jalangiPath} --initParam testCase:${testCase} --inlineIID --inlineSource --analysis ${chainedAnalysesPath} --analysis ${smemoryAnalysisPath} --analysis ${path.join(AVAILABLE_ANALYSES_DIR, conflictAnalysis, 'analysis.js')} ${path.join(AVAILABLE_ANALYSES_DIR, conflictAnalysis, 'test_cases', testCase, 'index.js')}`
-    )
-  }
-  
-  listDirectoriesInBaseDir(baseDir) {
-    const dirPath = path.join(baseDir);
-  
-    try {
-      const subDirs = fs.readdirSync(dirPath, { withFileTypes: true })
-        .filter(dirent => dirent.isDirectory())
-        .map(dirent => dirent.name);
-  
-      return subDirs;
-    } catch (error) {
-      console.error(`Error reading directories in ${dirPath}: ${error.message}`);
-      return [];
-    }
-  }
-  
-  getAnalysisAvailableTestCases = (conflictAnalysis) => {
-    return this.listDirectoriesInBaseDir(path.join(AVAILABLE_ANALYSES_DIR, conflictAnalysis, 'test_cases'))
-  }
-  
-  getAnalysisTestCasesUnities = (conflictAnalysis) => {
-    const testCases = this.getAnalysisAvailableTestCases(conflictAnalysis)
-    return testCases.map(
-      (testCase) => this.buildAnalysisUnit(testCase, conflictAnalysis)
+      inputPath,
+      `node ${jalangiPath} --initParam lineToBranchMapPath:${lineToBranchMapPath} --inlineIID --inlineSource --analysis ${chainedAnalysesPath} --analysis ${smemoryAnalysisPath} --analysis ${path.join(AVAILABLE_ANALYSES_DIR, conflictAnalysis, 'analysis.js')} ${inputPath}`
     )
   }
   
   runAnalysisUnit = analysisUnit => {
+    console.log(`\nRunning against: ${analysisUnit.inputPath}`);
     try {
       const stdout = execSync(analysisUnit.command, { encoding: 'utf-8' });
-      console.log(`\n - Test case: ${analysisUnit.testCase}`);
-      if (stdout) console.log(`    Output: ${stdout}`);
-      else console.log(`    No output`);
+      if (stdout) console.log(`Output: ${stdout}`);
+      else console.log(`No output`);
     } catch (error) {
-      console.log(`\n - Test case: ${analysisUnit.testCase}`);
-      console.error(`    Error: ${error.message}`);
+      console.error(`Error: ${error.message}`);
     }
   }
   
-  runAnalysis = (conflictAnalysis, testCase) => {
+  runAnalysis = (conflictAnalysis, inputPath, lineToBranchMapPath) => {
     console.log(`\nSTARTING TO RUN ANALYSIS: ${conflictAnalysis}...`)
-    switch (testCase) {
-      case DEFAULT_TO_ALL:
-        this.getAnalysisTestCasesUnities(conflictAnalysis)
-          .forEach((testCaseCommand) => {
-            this.runAnalysisUnit(testCaseCommand)
-          })
-        break
-      default:
-        this.runAnalysisUnit(this.buildAnalysisUnit(testCase, conflictAnalysis))
-        break
-    }
+    this.runAnalysisUnit(this.buildAnalysisUnit(conflictAnalysis, inputPath, lineToBranchMapPath))
   }
   
   getAvailableAnalyses = () => {
-    return this.listDirectoriesInBaseDir(path.join(AVAILABLE_ANALYSES_DIR))
+    return listDirectoriesInBaseDir(path.join(AVAILABLE_ANALYSES_DIR))
   }
   
-  runAnalyses = (conflictAnalysisValue, testCaseValue) => {
-    this.conflictAnalysisValue = conflictAnalysisValue
-    this.testCaseValue = testCaseValue
+  runAnalyses = (conflictAnalysisValue, inputPath, lineToBranchMapPath) => {
     switch (conflictAnalysisValue) {
-      case DEFAULT_TO_ALL:
-        const analyses = getAvailableAnalyses()
+      case undefined:
+        const analyses = this.getAvailableAnalyses()
         for (let conflictAnalysis of analyses) {
-          this.runAnalysis(conflictAnalysis, testCaseValue)
+          this.runAnalysis(conflictAnalysis, inputPath, lineToBranchMapPath)
         }
         break
       default:
-        this.runAnalysis(conflictAnalysisValue, testCaseValue)
+        this.runAnalysis(conflictAnalysisValue, inputPath, lineToBranchMapPath)
         break
     }
   }
 }
 
+// const runner = new Runner()
 
-// updateParamsWithArguments()
-// runAnalyses(conflictAnalysisValue, testCaseValue)
+// runner.runAnalyses('override_assignment', '.../src/analyses/override_assignment/test_cases/example/index.js', '.../src/analyses/override_assignment/test_cases/example/line_to_branch_map.json')
+
+// Example command: node src/generic-runner.js --inputPath=.../src/analyses/override_assignment/test_cases/example/index.js --lineToBranchMapPath=.../src/analyses/override_assignment/test_cases/example/line_to_branch_map.json
+// runner.runFromCLI()
 
 module.exports = {
   Runner
