@@ -2,14 +2,18 @@ const { exec, execSync } = require('child_process')
 const path = require('path')
 const { ALLOWED_CONFLICT_ANALYSES, BASE_DIR, AVAILABLE_ANALYSES_DIR } = require('./config')
 const { listDirectoriesInBaseDir } = require('./utils/file')
+const { v4: uuidv4 } = require('uuid')
 
 
 class AnalysisUnit {
-  constructor(conflictAnalysis, inputPath, command) {
+  constructor(conflictAnalysis, inputPath, command, uuid) {
     this.conflictAnalysis= conflictAnalysis
-    this.inputPath = inputPath, 
+    this.inputPath = inputPath
     this.command = command
+    this.uuid = uuid
   }
+
+  getUUID = () => this.uuid
 }
 
 class Runner {
@@ -57,11 +61,17 @@ class Runner {
     const chainedAnalysesPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'sample_analyses', 'ChainedAnalyses.js')
     const smemoryAnalysisPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'runtime', 'SMemory.js')
     const jalangiPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'commands', 'jalangi.js')
+    const uuid = uuidv4()
+    const extraParams = [
+      ['lineToBranchMapPath', `${lineToBranchMapPath}`].join(','),
+      ['UUID', `${uuid}`].join(',')
+    ].join('%')
     
     return new AnalysisUnit(
       conflictAnalysis,
       inputPath,
-      `node ${jalangiPath} --initParam lineToBranchMapPath:${lineToBranchMapPath} --inlineIID --inlineSource --analysis ${chainedAnalysesPath} --analysis ${smemoryAnalysisPath} --analysis ${path.join(AVAILABLE_ANALYSES_DIR, conflictAnalysis, 'analysis.js')} ${inputPath}`
+      `node ${jalangiPath} --initParam extraParams:${extraParams} --inlineIID --inlineSource --analysis ${chainedAnalysesPath} --analysis ${smemoryAnalysisPath} --analysis ${path.join(AVAILABLE_ANALYSES_DIR, conflictAnalysis, 'analysis.js')} ${inputPath}`,
+      uuid
     )
   }
   
@@ -78,7 +88,9 @@ class Runner {
   
   runAnalysis = (conflictAnalysis, inputPath, lineToBranchMapPath) => {
     console.log(`\nSTARTING TO RUN ANALYSIS: ${conflictAnalysis}...`)
-    this.runAnalysisUnit(this.buildAnalysisUnit(conflictAnalysis, inputPath, lineToBranchMapPath))
+    const analysisUnit = this.buildAnalysisUnit(conflictAnalysis, inputPath, lineToBranchMapPath)
+    this.runAnalysisUnit(analysisUnit)
+    return analysisUnit.getUUID()
   }
   
   getAvailableAnalyses = () => {

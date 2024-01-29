@@ -45,9 +45,9 @@ describe('Override Assignment Analysis Test Cases', () => {
         { testCase: 'local_variables_with_parameter', conflict: false },
     ])('$testCase, conflict: $conflict', ({ testCase, conflict }) => {
         const logSpy = jest.spyOn(console, 'log')
-        runner.runAnalyses(ANALYSIS, `${ANALYSIS_PATH}/test_cases/${testCase}/index.js`, `${ANALYSIS_PATH}/test_cases/${testCase}/line_to_branch_map.json`)
+        const uuid = runner.runAnalysis(ANALYSIS, `${ANALYSIS_PATH}/test_cases/${testCase}/index.js`, `${ANALYSIS_PATH}/test_cases/${testCase}/line_to_branch_map.json`)
         const expected = conflict
-            ? expect.stringContaining('Output')
+            ? expect.stringContaining('Interference detected') && expect.stringContaining(uuid)
             : expect.stringContaining('No output')
         expect(logSpy).toHaveBeenLastCalledWith(expected)
     })

@@ -6,12 +6,23 @@
  *
  */
 const utils = require('./utils')
+const { Logger } = require('../../logger')
 
-// Input: represents all lines that came from Left (L) or Right (R) branches - the rest is assumed to be from base
-if (!J$.initParams.lineToBranchMapPath) {
-    throw new Error('No lines to branch map provided')
+
+if (!J$.initParams.extraParams) {
+    throw new Error('No extraParams and lines to branch map provided')
 }
-const LINE_TO_BRANCH_MAP = require(J$.initParams.lineToBranchMapPath)
+
+const extraParamsObject = {}
+J$.initParams.extraParams.split('%').forEach(pair => {
+    const [key, val] = pair.split(',')
+    extraParamsObject[key] = val
+})
+const UUID = extraParamsObject.UUID
+// Input: represents all lines that came from Left (L) or Right (R) branches - the rest is assumed to be from base
+const LINE_TO_BRANCH_MAP = require(extraParamsObject.lineToBranchMapPath)
+
+const logger = new Logger(UUID)
 
 class Occurrence {
     constructor(id, name, location) {
@@ -87,7 +98,7 @@ class Interference {
     }
 
     log() {
-        console.log(`----Override assignment detected on ${this.previousAssignment.getLHSIdentifier()}: branch ${this.previousAssignment.getBranch()} at line ${this.previousAssignment.getLine()}, branch ${this.currentAssignment.getBranch()} at line ${this.currentAssignment.getLine()}----`)
+        logger.log(`----Override assignment detected on ${this.previousAssignment.getLHSIdentifier()}: branch ${this.previousAssignment.getBranch()} at line ${this.previousAssignment.getLine()}, branch ${this.currentAssignment.getBranch()} at line ${this.currentAssignment.getLine()}----`)
     }
 }
 
@@ -120,8 +131,8 @@ class FunctionCallStack {
     }
 
     log() {
-        console.log(`Interference detected`)
-        this.stack.reverse().forEach(f => console.log(f.getTrace()))
+        logger.log(`Interference detected`)
+        this.stack.reverse().forEach(f => logger.log(f.getTrace()))
     }
 }
 
