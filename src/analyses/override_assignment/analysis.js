@@ -3,233 +3,28 @@
 
 /**
  * @author  Koushik Sen
- *
- */
-const utils = require('./utils')
-const { Logger } = require('../../logger')
-
-
-if (!J$.initParams.extraParams) {
-    throw new Error('No extraParams and lines to branch map provided')
-}
-
-const extraParamsObject = {}
-J$.initParams.extraParams.split('%').forEach(pair => {
-    const [key, val] = pair.split(',')
-    extraParamsObject[key] = val
-})
-const UUID = extraParamsObject.UUID
-// Input: represents all lines that came from Left (L) or Right (R) branches - the rest is assumed to be from base
-const LINE_TO_BRANCH_MAP = require(extraParamsObject.lineToBranchMapPath)
-
-const logger = new Logger(UUID)
-
-class Occurrence {
-    constructor(id, name, location) {
-        this.id = id
-        this.name = name
-        this.location = location
-        this.branch = (new MergeController()).mapLineToBranch(this.getLine())
-    }
-
-    getId() {
-        return this.id
-    }
-
-    getName() {
-        return this.name
-    }
-
-    getLHSIdentifier() {
-        return `${this.id}_${this.name}`
-    }
-
-    getBranch() {
-        return this.branch
-    }
-
-    getLocation() {
-        return this.location
-    }
-
-    getLine() {
-        return utils.getSourceFileCorrespondingLine(this.location)
-    }
-
-    setBranch(branch) {
-        this.branch = branch
-    }
-}
-
-class Assignment extends Occurrence{
-    constructor(frameOrObjectID, nameOrField, location, isObject = false) {
-        super(frameOrObjectID, nameOrField, location)
-        this.isObject = isObject
-    }
-}
-
-class FunctionCall extends Occurrence {
-    constructor(functionID, name, location, beforeInvoke) {
-        super(functionID, name, location)
-        this.beforeInvoke = beforeInvoke
-    }
-
-    getTrace() {
-        return `    at ${this.getName()} ${this.getLocation()}`
-    }
-
-    isBeforeInvoke() {
-        return this.beforeInvoke
-    }
-}
-
-class Interference {
-    constructor(previousAssignment, currentAssignment) {
-        this.previousAssignment = previousAssignment
-        this.currentAssignment = currentAssignment
-    }
-
-    getPreviousAssigment() {
-        return this.previousAssignment
-    }
-
-    getCurrentAsssignment() {
-        return this.currentAssignment
-    }
-
-    log() {
-        logger.log(`----Override assignment detected on ${this.previousAssignment.getLHSIdentifier()}: branch ${this.previousAssignment.getBranch()} at line ${this.previousAssignment.getLine()}, branch ${this.currentAssignment.getBranch()} at line ${this.currentAssignment.getLine()}----`)
-    }
-}
-
-class FunctionCallStack {
-    constructor () {
-        this.stack = []
-    }
-
-    push(func) {
-        if (func instanceof FunctionCall) {
-            this.stack.push(func)
-        } else {
-            throw new Error(`[FunctionCallStack] New element must be an instance of ${FunctionCall.name}`)
-        }
-    }    
-
-    pop(_) {
-        return this.stack.pop()
-    }
-
-    getBranch() {
-        if (!this.isEmpty()) {
-            return this.stack.at(-1).getBranch()
-        }
-        return undefined
-    }
-
-    isEmpty() {
-        return this.stack.length === 0
-    }
-
-    log() {
-        logger.log(`Interference detected`)
-        this.stack.reverse().forEach(f => logger.log(f.getTrace()))
-    }
-}
-
-class OverrideAssignmentController {
-    constructor() {
-        this.branchAssignmentSets = {}
-        this.functionCallStack = new FunctionCallStack() // In the format [{FUNCTION: BRANCH}]
-    }
-
-    functionHandler(func) {
-        if ((!this.functionCallStack.isEmpty() || func.getBranch()) && func.isBeforeInvoke()) {
-            if (!func.getBranch()) func.setBranch(this.functionCallStack.getBranch())
-            this.functionCallStack.push(func)
-        } else if (!func.isBeforeInvoke()) {
-            this.functionCallStack.pop(func)
-        }
-    }
-
-    _updateAssignBranchBasedOnFunctionStack(assignment) {
-        const functionCallStackCurrentBranch = this.functionCallStack.getBranch()
-        if (!assignment.getBranch()) {
-            assignment.setBranch(functionCallStackCurrentBranch)
-        }
-        else if (functionCallStackCurrentBranch && functionCallStackCurrentBranch !== assignment.getBranch()){
-            const propagatedFunctionAssignment = new Assignment(assignment.getId(), assignment.getName(), assignment.getLocation())
-            propagatedFunctionAssignment.setBranch(functionCallStackCurrentBranch)
-            this.assignmentHandler(propagatedFunctionAssignment)
-        }
-    }
-
-    _assignmentExistsOnOtherBranch(assignment) {
-        const assignmentIdentifier = assignment.getLHSIdentifier()
-        const currentBranch = assignment.getBranch()
-
-        for (let branch of Object.keys(this.branchAssignmentSets)) {
-            if (branch !== currentBranch && this.branchAssignmentSets[branch][assignmentIdentifier]) {
-                return new Interference(this.branchAssignmentSets[branch][assignmentIdentifier], assignment)
-            }
-        }
-
-        return undefined
-    }
-
-    _removeAssignmentFromBranch(assignment, branch) {
-        const assignmentIdentifier = assignment.getLHSIdentifier()
-
-        if (this.branchAssignmentSets[branch][assignmentIdentifier]) {
-            delete this.branchAssignmentSets[branch][assignmentIdentifier]
-        }
-    }
-
-    _removeAssignmentFromOtherBranches(assignment) {
-        const currentBranch = assignment.getBranch()
-        const assignmentOnBaseBranch = currentBranch === undefined
-        for (let branch of Object.keys(this.branchAssignmentSets)) {
-            if (assignmentOnBaseBranch || (!assignmentOnBaseBranch && branch !== currentBranch)) {
-                this._removeAssignmentFromBranch(assignment, branch)
-            }
-        }
-    }
-
-    assignmentHandler(assignment) {
-        this._updateAssignBranchBasedOnFunctionStack(assignment)
-        const currentBranch = assignment.getBranch()
-        if (currentBranch) {
-            const interference = this._assignmentExistsOnOtherBranch(assignment)
-            if (interference) {
-                this.functionCallStack.log()
-                interference.log()
-            }
-
-            const assignmentIdentifier = assignment.getLHSIdentifier()
-            if (!this.branchAssignmentSets[currentBranch]) {
-                this.branchAssignmentSets[currentBranch] = {};
-            }
-            this.branchAssignmentSets[currentBranch][assignmentIdentifier] = assignment;
-        }
-        this._removeAssignmentFromOtherBranches(assignment)
-    }
-}
-
-class MergeController {
-    constructor(linesBranchMap = LINE_TO_BRANCH_MAP) {
-        this.linesBranchMap = linesBranchMap
-    }
-
-    mapLineToBranch(sourceFileLine) {
-        return this.linesBranchMap[sourceFileLine] ?? undefined
-    }
-
-}
+*
+*/
 
 (function (sandbox) {
+    const { Assignment, FunctionCall, LineToBranchMapper } = require('./classes')
+    const { OverrideAssignmentController } = require('./controllers')
+    const { EventController, Event, EventTypeEnum } = require('../../event');
+    const BranchEnum = require('./classes/BranchEnum')
 
-    if (sandbox.Constants.isBrowser) {
-        sandbox.Results = {};
+    if (!J$.initParams.extraParams) {
+        throw new Error('No extraParams and lines to branch map provided')
     }
+    
+    const extraParamsObject = {}
+    J$.initParams.extraParams.split('%').forEach(pair => {
+        const [key, val] = pair.split(',')
+        extraParamsObject[key] = val
+    })
+    const UUID = extraParamsObject.UUID
+    // Input: represents all lines that came from Left (L) or Right (R) branches - the rest is assumed to be from base
+    const LINE_TO_BRANCH_MAP = require(extraParamsObject.lineToBranchMapPath)
+    LineToBranchMapper.getInstance().setLineToBranchMap(LINE_TO_BRANCH_MAP)
 
     function MyAnalysis() {
 
@@ -327,11 +122,16 @@ class MergeController {
         };
 
         this.endExecution = function () {
-            if (sandbox.Results) {
-                for (let i = 0; i < logs.length; i++) {
-                    sandbox.log(logs[i]);
-                }
-            }
+            const interferences = overrideAssignmentController.getInterferences()
+            const eventBatch = EventController.buildBatch(UUID, interferences.map(interference => {
+                return new Event(EventTypeEnum.OVERRIDE_ASSIGNMENT, 'Override Assignment Conflict', {
+                    description: `${interference.describe()}`,
+                    target: interference.getTarget(),
+                    leftLines: [interference.getAssignmentByBranch(BranchEnum.LEFT).getLine()],
+                    rightLines: [interference.getAssignmentByBranch(BranchEnum.RIGHT).getLine()]
+                })
+            }))
+            console.log(EventController.batchToRecoverableString(eventBatch))
         };
     }
 

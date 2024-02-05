@@ -1,5 +1,7 @@
 const { Runner } = require('../../runner')
 const { AVAILABLE_ANALYSES_DIR } = require('../../config')
+const { EventTypeEnum } = require('../../event')
+const Context = require('../../context')
 
 const ANALYSIS = 'override_assignment'
 const ANALYSIS_PATH = `${AVAILABLE_ANALYSES_DIR}/${ANALYSIS}`
@@ -44,11 +46,12 @@ describe('Override Assignment Analysis Test Cases', () => {
         { testCase: 'local_variables_2', conflict: false },
         { testCase: 'local_variables_with_parameter', conflict: false },
     ])('$testCase, conflict: $conflict', ({ testCase, conflict }) => {
-        const logSpy = jest.spyOn(console, 'log')
-        const uuid = runner.runAnalysis(ANALYSIS, `${ANALYSIS_PATH}/test_cases/${testCase}/index.js`, `${ANALYSIS_PATH}/test_cases/${testCase}/line_to_branch_map.json`)
-        const expected = conflict
-            ? expect.stringContaining('Interference detected') && expect.stringContaining(uuid)
-            : expect.stringContaining('No output')
-        expect(logSpy).toHaveBeenLastCalledWith(expected)
+        const eventBatch = runner.runAnalysis(ANALYSIS, `${ANALYSIS_PATH}/test_cases/${testCase}/index.js`, `${ANALYSIS_PATH}/test_cases/${testCase}/line_to_branch_map.json`)
+        const uuid = Context.getInstance().getUUID()
+        expect(eventBatch).toHaveProperty('uuid')
+        expect(eventBatch.uuid).toBe(uuid)
+        conflict
+            ? expect(eventBatch.getEvents().some(event => event.type === EventTypeEnum.OVERRIDE_ASSIGNMENT)).toBe(true)
+            : expect(eventBatch.getEvents().some(event => event.type === EventTypeEnum.OVERRIDE_ASSIGNMENT)).toBe(false)
     })
 })

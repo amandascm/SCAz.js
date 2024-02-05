@@ -3,6 +3,8 @@ const path = require('path')
 const { ALLOWED_CONFLICT_ANALYSES, BASE_DIR, AVAILABLE_ANALYSES_DIR } = require('./config')
 const { listDirectoriesInBaseDir } = require('./utils/file')
 const { v4: uuidv4 } = require('uuid')
+const Context = require('./context')
+const { EventController, Event, EventTypeEnum } = require('./event')
 
 
 class AnalysisUnit {
@@ -67,6 +69,7 @@ class Runner {
       ['UUID', `${uuid}`].join(',')
     ].join('%')
     
+    Context.getInstance().setUUID(uuid)
     return new AnalysisUnit(
       conflictAnalysis,
       inputPath,
@@ -79,18 +82,30 @@ class Runner {
     console.log(`\nRunning against: ${analysisUnit.inputPath}`);
     try {
       const stdout = execSync(analysisUnit.command, { encoding: 'utf-8' });
-      if (stdout) console.log(`Output: ${stdout}`);
-      else console.log(`No output`);
+      if (stdout) {
+        // console.log(`Output: ${stdout}`)
+        const eventBatch = EventController.recoverBatchFromString(stdout)
+        console.log(`Output Event Batch: ${JSON.stringify(eventBatch)}`);
+        return eventBatch
+      }
     } catch (error) {
-      console.error(`Error: ${error.message}`);
+      console.log(`Error: ${error.message}`);
+      return EventController.buildBatch(
+        Context.getInstance().getUUID(),
+        [new Event(EventTypeEnum.ERROR, `${error?.message}`, undefined)]
+      )
     }
+    console.log('end')
+    return EventController.buildBatch(
+      Context.getInstance().getUUID(),
+      []
+    )
   }
   
   runAnalysis = (conflictAnalysis, inputPath, lineToBranchMapPath) => {
     console.log(`\nSTARTING TO RUN ANALYSIS: ${conflictAnalysis}...`)
     const analysisUnit = this.buildAnalysisUnit(conflictAnalysis, inputPath, lineToBranchMapPath)
-    this.runAnalysisUnit(analysisUnit)
-    return analysisUnit.getUUID()
+    return this.runAnalysisUnit(analysisUnit)
   }
   
   getAvailableAnalyses = () => {
