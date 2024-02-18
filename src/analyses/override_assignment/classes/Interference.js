@@ -15,7 +15,7 @@ class Interference {
     }
 
     describe() {
-        return `Override assignment detected on ${this.previousAssignment.getLHSIdentifier()}: branch ${this.previousAssignment.getBranch()} at line ${this.previousAssignment.getLine()}, branch ${this.currentAssignment.getBranch()} at line ${this.currentAssignment.getLine()}\n${this.callStack}`
+        return `Override assignment detected on ${this.previousAssignment.getLHSIdentifier()}: branch ${this.previousAssignment.getBranch()} at line ${this.previousAssignment.getLine()} ${this.previousAssignment.getLocation()}, branch ${this.currentAssignment.getBranch()} at line ${this.currentAssignment.getLine()} ${this.currentAssignment.getLocation()}\n${this.callStack}`
     }
 
     getAssignmentByBranch(branch) {
