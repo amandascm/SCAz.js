@@ -1,14 +1,21 @@
+const utils = require('./../utils')
+
 class LineToBranchMapper {
     constructor(linesBranchMap = {}) {
         this.linesBranchMap = linesBranchMap
+        this.inputFilePath = undefined
     }
 
-    setLineToBranchMap(linesBranchMap) {
+    setLineToBranchMap(linesBranchMap, inputFilePath) {
         this.linesBranchMap = linesBranchMap
+        this.inputFilePath = inputFilePath
     }
 
-    mapLineToBranch(sourceFileLine) {
-        return this.linesBranchMap[sourceFileLine] ?? undefined
+    mapLocationToBranch(sourceFileLocation) {
+        if (utils.getSourceFilePath(sourceFileLocation) === this.inputFilePath) {
+            return this.linesBranchMap[utils.getSourceFileCorrespondingLine(sourceFileLocation)] ?? undefined
+        }
+        return undefined
     }
 
     static getInstance (linesBranchMap = {}) {

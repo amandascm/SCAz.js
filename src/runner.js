@@ -1,10 +1,13 @@
-const { exec, execSync } = require('child_process')
+const { exec, execSync, spawnSync } = require('child_process')
 const path = require('path')
 const { ALLOWED_CONFLICT_ANALYSES, BASE_DIR, AVAILABLE_ANALYSES_DIR } = require('./config')
 const { listDirectoriesInBaseDir } = require('./utils/file')
 const { v4: uuidv4 } = require('uuid')
 const Context = require('./context')
 const { EventController, Event, EventTypeEnum } = require('./event')
+const Logger = require('./logger')
+
+const logger = new Logger('Runner')
 
 
 class AnalysisUnit {
@@ -50,11 +53,11 @@ class Runner {
       throw Error('Invalid lineToBranchMapPath value provided.')
     }
     if (!this.conflictAnalysisValue) {
-      console.warn('Invalid or missing conflictAnalysis value provided. Running all analyses...')
+      logger.log('Invalid or missing conflictAnalysis value provided. Running all analyses...')
     }
 
-    console.log(`Input path value: ${this.inputPath}`)
-    console.log(`Conflict analysis value: ${this.conflictAnalysisValue ?? 'all available'}`)
+    logger.log(`Input path value: ${this.inputPath}`)
+    logger.log(`Conflict analysis value: ${this.conflictAnalysisValue ?? 'all available'}`)
     this.runAnalyses(this.conflictAnalysisValue, this.inputPath, this.lineToBranchMapPath)
   
   }
@@ -66,7 +69,8 @@ class Runner {
     const uuid = uuidv4()
     const extraParams = [
       ['lineToBranchMapPath', `${lineToBranchMapPath}`].join(','),
-      ['UUID', `${uuid}`].join(',')
+      ['UUID', `${uuid}`].join(','),
+      ['inputFilePath', `${inputPath}`]
     ].join('%')
     
     Context.getInstance().setUUID(uuid)
@@ -79,23 +83,30 @@ class Runner {
   }
   
   runAnalysisUnit = analysisUnit => {
-    console.log(`\nRunning against: ${analysisUnit.inputPath}`);
+    logger.log(`\nRunning against: ${analysisUnit.inputPath}`);
     try {
-      const stdout = execSync(analysisUnit.command, { encoding: 'utf-8' });
-      if (stdout) {
-        // console.log(`Output: ${stdout}`)
-        const eventBatch = EventController.recoverBatchFromString(stdout)
-        console.log(`Output Event Batch: ${JSON.stringify(eventBatch)}`);
+      const result = spawnSync(analysisUnit.command.split(' ')[0], analysisUnit.command.split(' ').filter((_, i) => i !== 0), { encoding: 'utf-8', timeout: 120000 });
+      if (result.status != null && result.status === 0 && result.stdout) {
+        logger.log(`Output: ${result.stdout}`)
+        const eventBatch = EventController.recoverBatchFromString(result.stdout)
+        logger.log(`Output Event Batch: ${JSON.stringify(eventBatch)}`);
         return eventBatch
+      } else {
+        if (result.error) {
+          throw error
+        } else {
+          throw new Error(result.stderr)
+        }
       }
     } catch (error) {
-      console.log(`Error: ${error.message}`);
-      return EventController.buildBatch(
+      const eventBatch = EventController.buildBatch(
         Context.getInstance().getUUID(),
-        [new Event(EventTypeEnum.ERROR, `${error?.message}`, undefined)]
-      )
+        [new Event(EventTypeEnum.ERROR, `Error`,`${error?.message}`)]
+        )
+        logger.log(`Error Event Batch: ${JSON.stringify(eventBatch)}`);
+      return eventBatch
     }
-    console.log('end')
+    logger.log('Nothing happened')
     return EventController.buildBatch(
       Context.getInstance().getUUID(),
       []
@@ -103,7 +114,7 @@ class Runner {
   }
   
   runAnalysis = (conflictAnalysis, inputPath, lineToBranchMapPath) => {
-    console.log(`\nSTARTING TO RUN ANALYSIS: ${conflictAnalysis}...`)
+    logger.log(`\nStarting to run analysis: ${conflictAnalysis}...`)
     const analysisUnit = this.buildAnalysisUnit(conflictAnalysis, inputPath, lineToBranchMapPath)
     return this.runAnalysisUnit(analysisUnit)
   }

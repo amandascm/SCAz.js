@@ -1,0 +1,2 @@
+project;merge commit;file path;left additions;left deletions;left changes;right additions;right deletions;right changes;repo url
+Bowser;ebfaba07e514a7e7f1e1f582fa33f1597fed8482;src/bowser.js;[32, 64, 65, 45, 46, 47, 48, 49, 50, 82, 20, 84, 22, 86, 23, 87, 88, 89, 90, 30, 62, 94, 63];[17];[80, 144, 2, 3, 6, 134, 135, 136, 142, 79, 143];[96, 97, 98, 99, 100, 103, 104, 106, 107, 108, 83, 21, 90, 91, 28, 92, 29, 93, 30];[];[35, 36, 37, 38, 39, 40, 41, 74, 75, 77];https://github.com/lancedikson/bowser

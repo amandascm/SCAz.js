@@ -1,6 +1,6 @@
 class Logger {
     constructor(context) {
-        this.context = `context:${context} - `
+        this.context = `[${context}] - `
     }
 
     log = (msg) => {
@@ -12,6 +12,4 @@ class Logger {
     }
 }
 
-module.exports = {
-    Logger
-}
+module.exports = Logger

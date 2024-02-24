@@ -24,7 +24,8 @@
     const UUID = extraParamsObject.UUID
     // Input: represents all lines that came from Left (L) or Right (R) branches - the rest is assumed to be from base
     const LINE_TO_BRANCH_MAP = require(extraParamsObject.lineToBranchMapPath)
-    LineToBranchMapper.getInstance().setLineToBranchMap(LINE_TO_BRANCH_MAP)
+    const INPUT_FILE_PATH = extraParamsObject.inputFilePath
+    LineToBranchMapper.getInstance().setLineToBranchMap(LINE_TO_BRANCH_MAP, INPUT_FILE_PATH)
 
     function MyAnalysis() {
 

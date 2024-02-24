@@ -7,7 +7,7 @@ class FunctionCall extends Occurrence {
     }
 
     getTrace() {
-        return `    at ${this.getName()} ${this.getLocation()}`
+        return `    at ${this.getName()} ${this.getLocation()}${this.getBranch() !== undefined ? ` from branch ${this.getBranch()}` : ''}`
     }
 
     isBeforeInvoke() {

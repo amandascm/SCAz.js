@@ -1,5 +1,13 @@
 const FunctionCall = require('./FunctionCall')
 
+function reverseArray(arr) {
+    var reversed = [];
+    for (var i = arr.length - 1; i >= 0; i--) {
+        reversed.push(arr[i]);
+    }
+    return reversed;
+}
+
 class FunctionCallStack {
     constructor () {
         this.stack = []
@@ -19,7 +27,7 @@ class FunctionCallStack {
 
     getBranch() {
         if (!this.isEmpty()) {
-            return this.stack.at(-1).getBranch()
+            return (reverseArray(this.stack).find(f => f.getBranch() !== undefined)).getBranch()
         }
         return undefined
     }
@@ -29,7 +37,7 @@ class FunctionCallStack {
     }
 
     describe() {
-        return this.stack.reverse().reduce((acc, curr) => {
+        return reverseArray(this.stack).reduce((acc, curr) => {
             return `${acc}${curr.getTrace()}\n`
         }, (this.stack.length ? 'Function call stack:\n' : ''))
     }

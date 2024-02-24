@@ -6,9 +6,11 @@ const ALLOWED_CONFLICT_ANALYSES = ['override_assignment']
 // Paths
 const BASE_DIR = path.join(__dirname, '..', '..')
 const AVAILABLE_ANALYSES_DIR = path.join(BASE_DIR, 'src', 'analyses')
+const PROJECTS_DIR = path.join(BASE_DIR, 'src', 'projects')
 
 module.exports = {
     ALLOWED_CONFLICT_ANALYSES,
     BASE_DIR,
-    AVAILABLE_ANALYSES_DIR
+    AVAILABLE_ANALYSES_DIR,
+    PROJECTS_DIR
 }

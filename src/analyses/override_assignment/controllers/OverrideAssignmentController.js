@@ -11,7 +11,7 @@ class OverrideAssignmentController {
 
     functionHandler(func) {
         if ((!this.functionCallStack.isEmpty() || func.getBranch()) && func.isBeforeInvoke()) {
-            if (!func.getBranch()) func.setBranch(this.functionCallStack.getBranch())
+            // if (!func.getBranch()) func.setBranch(this.functionCallStack.getBranch())
             this.functionCallStack.push(func)
         } else if (!func.isBeforeInvoke()) {
             this.functionCallStack.pop(func)
@@ -67,7 +67,7 @@ class OverrideAssignmentController {
         if (currentBranch) {
             const interference = this._assignmentExistsOnOtherBranch(assignment)
             if (interference) {
-                this.interferences.push(interference)
+                                this.interferences.push(interference)
             }
 
             const assignmentIdentifier = assignment.getLHSIdentifier()

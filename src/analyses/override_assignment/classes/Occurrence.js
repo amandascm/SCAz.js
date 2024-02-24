@@ -6,7 +6,7 @@ class Occurrence {
         this.id = id
         this.name = name
         this.location = location
-        this.branch = LineToBranchMapper.getInstance().mapLineToBranch(this.getLine())
+        this.branch = LineToBranchMapper.getInstance().mapLocationToBranch(this.getLocation())
     }
 
     getId() {
