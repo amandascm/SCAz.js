@@ -1,9 +1,8 @@
 class Interference {
-    constructor(previousAssignment, currentAssignment, callStack) {
+    constructor(previousAssignment, currentAssignment) {
         this.previousAssignment = previousAssignment
         this.currentAssignment = currentAssignment
         this.targetIdentifier = previousAssignment.getLHSIdentifier()
-        this.callStack = callStack
     }
 
     getPreviousAssigment() {
@@ -15,7 +14,7 @@ class Interference {
     }
 
     describe() {
-        return `Override assignment detected on ${this.previousAssignment.getLHSIdentifier()}: branch ${this.previousAssignment.getBranch()} at line ${this.previousAssignment.getLine()} ${this.previousAssignment.getLocation()}, branch ${this.currentAssignment.getBranch()} at line ${this.currentAssignment.getLine()} ${this.currentAssignment.getLocation()}\n${this.callStack}`
+        return `Interference detected on ${this.previousAssignment.getLHSIdentifier()}:\n${this.previousAssignment.describe()}\n${this.currentAssignment.describe()}`
     }
 
     getAssignmentByBranch(branch) {

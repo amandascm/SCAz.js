@@ -108,7 +108,7 @@
             const actualObjectId = sandbox.smemory.getIDFromShadowObjectOrFrame(sandbox.smemory.getShadowObject(base, offset, false).owner)
             const location = J$.iidToLocation(J$.sid, iid)
 
-            const assignment = new Assignment(actualObjectId, offset, location)
+            const assignment = new Assignment(actualObjectId, offset, location, true)
             overrideAssignmentController.assignmentHandler(assignment)
         };
 
@@ -127,9 +127,7 @@
             const eventBatch = EventController.buildBatch(UUID, interferences.map(interference => {
                 return new Event(EventTypeEnum.OVERRIDE_ASSIGNMENT, 'Override Assignment Conflict', {
                     description: `${interference.describe()}`,
-                    target: interference.getTarget(),
-                    leftLines: [interference.getAssignmentByBranch(BranchEnum.LEFT).getLine()],
-                    rightLines: [interference.getAssignmentByBranch(BranchEnum.RIGHT).getLine()]
+                    interference
                 })
             }))
             console.log(EventController.batchToRecoverableString(eventBatch))

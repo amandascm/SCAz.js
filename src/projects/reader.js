@@ -23,6 +23,7 @@ const outputHtmlFile = path.join(PROJECTS_DIR, 'output.html');
 // Create or overwrite the HTML file
 fs.writeFileSync(outputHtmlFile, '<html><head><style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }</style></head><body><table>\n');
 fs.writeFileSync(outputCsvFile, ``);
+const currentCursor = 0// 0
 
 // Add HTML footer
 const footer = '</table></body></html>';
@@ -32,8 +33,8 @@ const rows = [];
 fs.createReadStream(inputFile)
   .pipe(csvParser({ separator: ';' }))
   .on('headers', (headerFields) => {
-    fs.appendFileSync(outputCsvFile, `${Object.values(headerFields).join(';')}\n`);
     headerFields.push('Left lines', 'Right lines', 'Execution events', 'Execution event batch')
+    fs.appendFileSync(outputCsvFile, `${Object.values(headerFields).join(';')}\n`);
     const tableHeader = `<thead><tr>${headerFields.map(header => `<th>${header}</th>`).join('')}</tr></thead>`;
     fs.appendFileSync(outputHtmlFile, tableHeader);
   })
@@ -49,18 +50,20 @@ function installDependencies(projectPath) {
     if (localPathExists(`${projectPath}/node_modules`)) {
       execSync(`rm -rf ${projectPath}/node_modules`, { encoding: 'utf-8' });
     }
-    let output = execSync(`cd ${projectPath} && nvm install`, { encoding: 'utf-8' });
-    output = execSync(`cd ${projectPath} && nvm use`, { encoding: 'utf-8' });
+    let output = execSync(`cd ${projectPath} && nvm install`, { encoding: 'utf-8', timeout: 120000 });
+    output = execSync(`cd ${projectPath} && nvm use`, { encoding: 'utf-8', timeout: 120000 });
   } catch (error) {
     logger.log(`Error executing command: ${error.message}`);
   } finally {
-    output = execSync(`cd ${projectPath} && npm install`, { encoding: 'utf-8' });
+    output = execSync(`cd ${projectPath} && npm install --quiet`, { encoding: 'utf-8', timeout: 120000 });
   }
 }
 
 // Process each row
 async function processRows(rows) {
-  for (const row of rows) {
+  logger.log(`Started processing rows from CSV... ${currentCursor}, ${rows.length}`)
+  for (let rowIndex = currentCursor; rowIndex<rows.length; rowIndex++) {
+    const row = rows[rowIndex]
     const repoUrl = row['repo url']
     const mergeCommmit = row['merge commit']
     const ancestorCommit = row['ancestor commit']
@@ -68,27 +71,38 @@ async function processRows(rows) {
     const rightParentCommit = row['right parent commit']
     const projectName = row['project']
     const fileRelativePath = row['file path']
-    console.log(ancestorCommit, mergeCommmit, leftParentCommit, rightParentCommit)
+
+    logger.log(`what is happening... ${row}`)
 
     const localProjectPath = path.join(PROJECTS_DIR, 'cloned_projects', projectName)
     const lineToBranchMapPath = path.join(localProjectPath, '..', `${mergeCommmit}-lineToBranchMap.json`)
     const filePath = path.join(localProjectPath, fileRelativePath)
 
-    const git = Git.getInstance()
-    await git.clone(repoUrl, localProjectPath)
-    console.log(await git.getMergeLinesAffectedByParent(mergeCommmit, ancestorCommit, leftParentCommit, localProjectPath, filePath))
-    const lineToBranchMap = {}
-    const leftLines = await git.getMergeLinesAffectedByParent(mergeCommmit, ancestorCommit, leftParentCommit, localProjectPath, filePath)
-    for (const line of leftLines) {
-      lineToBranchMap[line] = 'L'
-    }
-    const rightLines = await git.getMergeLinesAffectedByParent(mergeCommmit, ancestorCommit, rightParentCommit, localProjectPath, filePath)
-    for (const line of rightLines) {
-      lineToBranchMap[line] = 'R'
-    }
+    let leftLines, rightLines
+
     try {
+      const git = Git.getInstance()
+      await git.clone(repoUrl, localProjectPath)
+      const lineToBranchMap = {}
+      leftLines = await git.getMergeLinesAffectedByParent(mergeCommmit, ancestorCommit, leftParentCommit, localProjectPath, filePath)
+      for (const line of leftLines) {
+        lineToBranchMap[line] = 'L'
+      }
+      rightLines = await git.getMergeLinesAffectedByParent(mergeCommmit, ancestorCommit, rightParentCommit, localProjectPath, filePath)
+      for (const line of rightLines) {
+        lineToBranchMap[line] = 'R'
+      }
+      if (!(leftLines.length > 0 && rightLines.length > 0)) {
+        logger.log(`No lines extracted from merge for parents: ${projectName}, ${mergeCommmit}`)
+        continue
+      }
       installDependencies(localProjectPath)
       writeFile(lineToBranchMapPath, JSON.stringify(lineToBranchMap))
+    } catch (err) {
+      logger.log(`Error on pre-analysis prep: ${err?.message}`)
+      continue
+    }
+    try {
       const result = await analyze(filePath, lineToBranchMapPath)
       if (result?.eventTypes && result?.eventBatch) {
         row.leftLines = leftLines

@@ -41,6 +41,10 @@ class FunctionCallStack {
             return `${acc}${curr.getTrace()}\n`
         }, (this.stack.length ? 'Function call stack:\n' : ''))
     }
+
+    getCurrentStack() {
+        return [...(this.stack.map(fcall => Object.assign({}, fcall)))]
+    }
 }
 
 module.exports = FunctionCallStack

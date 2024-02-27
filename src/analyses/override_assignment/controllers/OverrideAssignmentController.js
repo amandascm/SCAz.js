@@ -24,7 +24,7 @@ class OverrideAssignmentController {
             assignment.setBranch(functionCallStackCurrentBranch)
         }
         else if (functionCallStackCurrentBranch && functionCallStackCurrentBranch !== assignment.getBranch()){
-            const propagatedFunctionAssignment = new Assignment(assignment.getId(), assignment.getName(), assignment.getLocation())
+            const propagatedFunctionAssignment = new Assignment(assignment.getId(), assignment.getName(), assignment.getLocation(), undefined, this.functionCallStack.getCurrentStack())
             propagatedFunctionAssignment.setBranch(functionCallStackCurrentBranch)
             this.assignmentHandler(propagatedFunctionAssignment)
         }
@@ -36,7 +36,7 @@ class OverrideAssignmentController {
 
         for (let branch of Object.keys(this.branchAssignmentSets)) {
             if (branch !== currentBranch && this.branchAssignmentSets[branch][assignmentIdentifier]) {
-                return new Interference(this.branchAssignmentSets[branch][assignmentIdentifier], assignment, this.functionCallStack.describe())
+                return new Interference(this.branchAssignmentSets[branch][assignmentIdentifier], assignment)
             }
         }
 

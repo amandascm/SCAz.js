@@ -11,6 +11,10 @@ class LineToBranchMapper {
         this.inputFilePath = inputFilePath
     }
 
+    getLineToBranchMap() {
+        return this.linesBranchMap
+    }
+
     mapLocationToBranch(sourceFileLocation) {
         if (utils.getSourceFilePath(sourceFileLocation) === this.inputFilePath) {
             return this.linesBranchMap[utils.getSourceFileCorrespondingLine(sourceFileLocation)] ?? undefined
