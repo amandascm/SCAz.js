@@ -65,6 +65,7 @@ class Runner {
   buildAnalysisUnit = (conflictAnalysis, inputPath, lineToBranchMapPath) => {
     const chainedAnalysesPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'sample_analyses', 'ChainedAnalyses.js')
     const smemoryAnalysisPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'runtime', 'SMemory.js')
+    const traceAllAnalysisPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'sample_analyses', 'pldi16', 'TraceAll.js') //--analysis ${traceAllAnalysisPath}
     const jalangiPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'commands', 'jalangi.js')
     const uuid = uuidv4()
     const extraParams = [
@@ -100,8 +101,9 @@ class Runner {
       }
     } catch (error) {
       const eventBatch = EventController.buildBatch(
-        Context.getInstance().getUUID(),
-        [new Event(EventTypeEnum.ERROR, `Error`,`${error?.message}`)]
+          Context.getInstance().getUUID(),
+          {},
+          [new Event(EventTypeEnum.ERROR, `Error`,`${error?.message}`)]
         )
         logger.log(`Error Event Batch: ${JSON.stringify(eventBatch)}`);
       return eventBatch
@@ -109,6 +111,7 @@ class Runner {
     logger.log('Nothing happened')
     return EventController.buildBatch(
       Context.getInstance().getUUID(),
+      {},
       []
     )
   }

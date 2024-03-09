@@ -2,7 +2,7 @@ const {
     Assignment, FunctionCallStack, Interference
 } = require('../classes')
 
-class OverrideAssignmentController {
+class AssignmentOverridingController {
     constructor() {
         this.branchAssignmentSets = {}
         this.functionCallStack = new FunctionCallStack() // In the format [{FUNCTION: BRANCH}]
@@ -23,6 +23,7 @@ class OverrideAssignmentController {
         if (!assignment.getBranch()) {
             assignment.setBranch(functionCallStackCurrentBranch)
         }
+        // else if (functionCallStackCurrentBranch && functionCallStackCurrentBranch !== assignment.getBranch() && !assignment.getBranch()){
         else if (functionCallStackCurrentBranch && functionCallStackCurrentBranch !== assignment.getBranch()){
             const propagatedFunctionAssignment = new Assignment(assignment.getId(), assignment.getName(), assignment.getLocation(), undefined, this.functionCallStack.getCurrentStack())
             propagatedFunctionAssignment.setBranch(functionCallStackCurrentBranch)
@@ -67,7 +68,7 @@ class OverrideAssignmentController {
         if (currentBranch) {
             const interference = this._assignmentExistsOnOtherBranch(assignment)
             if (interference) {
-                                this.interferences.push(interference)
+                this.interferences.push(interference)
             }
 
             const assignmentIdentifier = assignment.getLHSIdentifier()
@@ -84,4 +85,4 @@ class OverrideAssignmentController {
     }
 }
 
-module.exports = OverrideAssignmentController
+module.exports = AssignmentOverridingController

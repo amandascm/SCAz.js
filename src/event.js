@@ -1,7 +1,7 @@
 const Context = require('./context')
 
 const EventTypeEnum = {
-    OVERRIDE_ASSIGNMENT: 'OVERRIDE_ASSIGNMENT_CONFLICT',
+    ASSIGNMENT_OVERRIDING: 'ASSIGNMENT_OVERRIDING_CONFLICT',
     ERROR: 'ERROR',
 }
 
@@ -22,20 +22,22 @@ class Event {
 }
 
 class EventBatch {
-    constructor(uuid, events) {
+    constructor(uuid, data, events) {
         this.uuid = uuid
+        this.data = data
         this.events = events.map(event => event instanceof Event ? event : new Event(event.type, event.label, event.body))
     }
 
     toObject() {
         return {
             uuid: this.uuid,
+            data: this.data,
             events: this.events.map(event => event.toObject())
         }
     }
 
     static fromObject(obj) {
-        return new EventBatch(obj.uuid, obj.events)
+        return new EventBatch(obj.uuid, obj.data, obj.events)
     }
 
     getEvents() {
@@ -44,8 +46,8 @@ class EventBatch {
 }
 
 class EventController {
-    static buildBatch (uuid, events) {
-        return new EventBatch(uuid, events)
+    static buildBatch (uuid, data, events) {
+        return new EventBatch(uuid, data, events)
     }
 
     static batchToRecoverableString (eventBatch) {
@@ -54,7 +56,7 @@ class EventController {
 
     static recoverBatchFromString(inputString) {
         const currentUuid = Context.getInstance().getUUID();
-        const regexPattern = new RegExp(`\\{\"uuid\":\\s*\"${currentUuid}\",\\s*\"events\":\\s*\\[.*\\]\\}`);
+        const regexPattern = new RegExp(`\\{\"uuid\":\\s*\"${currentUuid}\",\\s*\"data\":\\s*\\{.*\\},\\s*\"events\":\\s*\\[.*\\]\\}`);
         const match = inputString.match(regexPattern);
         if (match) {
             const capturedObject = JSON.parse(match[0]);

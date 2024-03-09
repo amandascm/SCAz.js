@@ -69,12 +69,10 @@ class Git {
         const mergeLinesAffectedByParent = []
         for (const commit of parentBranchCommits) {
             const mergeLinesAffectedByCommit = mergeCommitsToLinesMap[commit] ?? mergeCommitsToLinesMap[commit.slice(0,8)] ?? mergeCommitsToLinesMap[commit.slice(0,7)]
-            // console.log(commit, mergeLinesAffectedByCommit)
             if (mergeLinesAffectedByCommit?.length > 0) {
                 mergeLinesAffectedByParent.push(...mergeLinesAffectedByCommit)
             }
         }
-        // console.log(mergeLinesAffectedByParent, '\n\n')
         return mergeLinesAffectedByParent
     }
 }

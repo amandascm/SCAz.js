@@ -8,7 +8,7 @@
 
 (function (sandbox) {
     const { Assignment, FunctionCall, LineToBranchMapper } = require('./classes')
-    const { OverrideAssignmentController } = require('./controllers')
+    const { AssignmentOverridingController, AssignmentController } = require('./controllers')
     const { EventController, Event, EventTypeEnum } = require('../../event');
     const BranchEnum = require('./classes/BranchEnum')
 
@@ -27,9 +27,10 @@
     const INPUT_FILE_PATH = extraParamsObject.inputFilePath
     LineToBranchMapper.getInstance().setLineToBranchMap(LINE_TO_BRANCH_MAP, INPUT_FILE_PATH)
 
-    function MyAnalysis() {
+    function AssignmentOverridingAnalysis() {
 
-        const overrideAssignmentController = new OverrideAssignmentController()
+        const assignmentOverridingController = new AssignmentOverridingController()
+        const assignmentController = new AssignmentController()
 
         this.invokeFunPre = function (iid, f, base, args, isConstructor, isMethod, functionIid, functionSid) {
             const location = J$.iidToLocation(J$.sid, iid)
@@ -93,15 +94,16 @@
                 }
                 for (let offset of offsets) {
                     const assignment = new Assignment(actualObjectId, offset, location)
-                    overrideAssignmentController.assignmentHandler(assignment)
+                    assignmentOverridingController.assignmentHandler(assignment)
+                    assignmentController.assignmentHandler(assignment)
                 }
             }
-            overrideAssignmentController.functionHandler(new FunctionCall(functionIid, f.name, location, true))
+            assignmentOverridingController.functionHandler(new FunctionCall(functionIid, f.name, location, true))
         };
 
         this.invokeFun = function (iid, f, base, args, result, isConstructor, isMethod, functionIid, functionSid) {
             const location = J$.iidToLocation(J$.sid, iid)
-            overrideAssignmentController.functionHandler(new FunctionCall(functionIid, f.name, location, false))
+            assignmentOverridingController.functionHandler(new FunctionCall(functionIid, f.name, location, false))
         };
 
         this.putFieldPre = function (iid, base, offset, val, isComputed, isOpAssign) {
@@ -109,7 +111,8 @@
             const location = J$.iidToLocation(J$.sid, iid)
 
             const assignment = new Assignment(actualObjectId, offset, location, true)
-            overrideAssignmentController.assignmentHandler(assignment)
+            assignmentOverridingController.assignmentHandler(assignment)
+            assignmentController.assignmentHandler(assignment)
         };
 
         this.write = function (iid, name, val, lhs, isGlobal, isScriptLocal) {
@@ -117,24 +120,30 @@
             const location = J$.iidToLocation(J$.sid, iid)
 
             const assignment = new Assignment(frameId, name, location)
-            overrideAssignmentController.assignmentHandler(assignment)
+            assignmentOverridingController.assignmentHandler(assignment)
+            assignmentController.assignmentHandler(assignment)
 
             return {result: val}
         };
 
         this.endExecution = function () {
-            const interferences = overrideAssignmentController.getInterferences()
-            const eventBatch = EventController.buildBatch(UUID, interferences.map(interference => {
-                return new Event(EventTypeEnum.OVERRIDE_ASSIGNMENT, 'Override Assignment Conflict', {
-                    description: `${interference.describe()}`,
-                    interference
+            const interferences = assignmentOverridingController.getInterferences()
+            const overridenTargetsCount = assignmentController.getOverridenTargetsAmount()
+            const overridenTargets = assignmentController.getOverridenTargets()
+            const eventBatch = EventController.buildBatch(
+                UUID, 
+                {overridenTargetsCount, overridenTargets},
+                interferences.map(interference => {
+                    return new Event(EventTypeEnum.ASSIGNMENT_OVERRIDING, 'Assignment Overriding Conflict', {
+                        description: `${interference.describe()}`,
+                        interference
                 })
             }))
             console.log(EventController.batchToRecoverableString(eventBatch))
         };
     }
 
-    sandbox.analysis = new MyAnalysis();
+    sandbox.analysis = new AssignmentOverridingAnalysis();
 
 }(J$));
 
