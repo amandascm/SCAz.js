@@ -20,14 +20,17 @@ class AssignmentOverridingController {
 
     _updateAssignBranchBasedOnFunctionStack(assignment) {
         const functionCallStackCurrentBranch = this.functionCallStack.getBranch()
-        if (!assignment.getBranch()) {
-            assignment.setBranch(functionCallStackCurrentBranch)
-        }
-        // else if (functionCallStackCurrentBranch && functionCallStackCurrentBranch !== assignment.getBranch() && !assignment.getBranch()){
-        else if (functionCallStackCurrentBranch && functionCallStackCurrentBranch !== assignment.getBranch()){
-            const propagatedFunctionAssignment = new Assignment(assignment.getId(), assignment.getName(), assignment.getLocation(), undefined, this.functionCallStack.getCurrentStack())
-            propagatedFunctionAssignment.setBranch(functionCallStackCurrentBranch)
-            this.assignmentHandler(propagatedFunctionAssignment)
+        if (functionCallStackCurrentBranch) {
+            assignment.setFunctionCallStack(this.functionCallStack.getCurrentStack())
+            if (!assignment.getBranch()) {
+                assignment.setBranch(functionCallStackCurrentBranch)
+            }
+            // else if (functionCallStackCurrentBranch && functionCallStackCurrentBranch !== assignment.getBranch() && !assignment.getBranch()){
+            if (functionCallStackCurrentBranch !== assignment.getBranch()){
+                const propagatedFunctionAssignment = new Assignment(assignment.getId(), assignment.getName(), assignment.getLocation(), undefined, this.functionCallStack.getCurrentStack())
+                propagatedFunctionAssignment.setBranch(functionCallStackCurrentBranch)
+                this.assignmentHandler(propagatedFunctionAssignment)
+            }
         }
     }
 

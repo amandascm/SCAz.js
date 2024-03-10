@@ -10,6 +10,10 @@ class Assignment extends Occurrence {
     describe () {
         return `Branch ${this.getBranch()} at line ${this.getLine()} ${this.getLocation()}${this.functionCallStack?.length ? ` with interprocedural stack: ${JSON.stringify(this.functionCallStack)}` : ''}`
     }
+
+    setFunctionCallStack (functionCallStack) {
+        this.functionCallStack = functionCallStack
+    }
 }
 
 module.exports = Assignment

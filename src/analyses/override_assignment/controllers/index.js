@@ -1,4 +1,4 @@
-const AssignmentOverridingController = require('./OverrideAssignmentController')
+const AssignmentOverridingController = require('./AssignmentOverridingController')
 const AssignmentController = require('./AssignmentController')
 
 module.exports = {
