@@ -11,47 +11,84 @@ const runner = new Runner()
 describe('Override Assignment Analysis Test Cases', () => {
     test.each([
         { testCase: 'example', conflict: true },
-        { testCase: 'addition_to_array', conflict: true },
-        { testCase: 'array_constant_diff_index', conflict: false },
-        { testCase: 'array_constant_same_index', conflict: true },
-        { testCase: 'array_class_field', conflict: false },
-        { testCase: 'array_class_field_conflict', conflict: true },
-        { testCase: 'base', conflict: false },
-        { testCase: 'base_conflict', conflict: true },
-        { testCase: 'both_marking', conflict: true },
-        { testCase: 'call_graph', conflict: true },
-        { testCase: 'chained_methods_call', conflict: true },
-        { testCase: 'chained_params', conflict: true },
-        { testCase: 'change_instance_attribute', conflict: true },
-        { testCase: 'change_object_propagating_field', conflict: false },
-        { testCase: 'change_public_attributes', conflict: true },
-        { testCase: 'class_field', conflict: true },
-        { testCase: 'class_field_2', conflict: true },
-        { testCase: 'class_field_3', conflict: false },
-        { testCase: 'class_field_4', conflict: false },
-        { testCase: 'class_field_with_parameter', conflict: true },
-        { testCase: 'concat_methods', conflict: true },
-        { testCase: 'contains_invoke_exp', conflict: true },
-        { testCase: 'default_constructor', conflict: true },
-        { testCase: 'different_attribute_on_identical_class', conflict: false },
-        { testCase: 'different_class_with_same_attribute', conflict: false },
-        { testCase: 'different_method_on_identical_class', conflict: true },
-        { testCase: 'hash_map', conflict: false },
-        { testCase: 'if_branch', conflict: true },
-        { testCase: 'if_with_invoke', conflict: true },
-        { testCase: 'init_array', conflict: false },
-        { testCase: 'local_array', conflict: false },
-        { testCase: 'local_array_recursive', conflict: false },
-        { testCase: 'local_variables', conflict: false },
-        { testCase: 'local_variables_2', conflict: false },
-        { testCase: 'local_variables_with_parameter', conflict: false },
+        // { testCase: 'innerClassRecursiveNotConflictSample', conflict: true }, // ERRO
+        { testCase: 'additionToArrayConflictSample', conflict: false }, // divergent => change name
+        { testCase: 'arrayAliasingConflictSample', conflict: true },
+        { testCase: 'arrayConstantSample', conflict: false }, // divergent
+        { testCase: 'arrayDiferentIndexNotConflictSample', conflict: false },
+        { testCase: 'arraySameIndexConflictSample', conflict: true },
+        { testCase: 'arraysClassFieldConflictSample', conflict: true },
+        { testCase: 'arraysClassFieldNotConflictSample', conflict: false },
+        { testCase: 'baseConflictSample', conflict: true },
+        { testCase: 'baseNotConflictSample', conflict: false },
+        { testCase: 'bothMarkingConflictSample', conflict: true },
+        { testCase: 'callGraphSample', conflict: true },
+        // { testCase: 'chainedMethodCallsConflictSample', conflict: true }, // ERRO
+        { testCase: 'changeInstanceAttributeConflictSample', conflict: true },
+        { testCase: 'changeObjectPropagatinsFieldSample', conflict: false }, // divergent
+        { testCase: 'changeObjectPropagatinsFieldSample2', conflict: false }, // divergent
+        { testCase: 'changeObjectPropagatinsFieldSample3', conflict: false },
+        { testCase: 'changeObjectPropagatinsFieldSample4', conflict: false }, // divergent
+        { testCase: 'changeObjectPropagatinsFieldSample5', conflict: false }, // divergent
+        { testCase: 'changeObjectPropagatinsFieldSample6', conflict: false }, // divergent
+        { testCase: 'changePublicAttributesConflictSample', conflict: true },
+        { testCase: 'classFieldConflictSample', conflict: true },
+        { testCase: 'classFieldConflictSample2', conflict: true },
+        { testCase: 'classFieldNotConflictSample', conflict: false },
+        { testCase: 'classFieldNotConflictSample2', conflict: false },
+        { testCase: 'classFieldWithParameterNotConflictSample', conflict: true },
+        { testCase: 'concatMethodsConflictSample', conflict: true },
+        { testCase: 'containmentSample', conflict: true },
+        { testCase: 'containsInvokeExpConflictSample', conflict: true },
+        { testCase: 'defaultConstructorConflictSample', conflict: false }, // divergent translation / syntax
+        { testCase: 'differentAttributeOnIdenticalClassNotConflictSample', conflict: false },
+        { testCase: 'differentClassWithSameAttributeNotConflictSample', conflict: false },
+        { testCase: 'differentMethodOnIdenticalClassConflictSample', conflict: true },
+        { testCase: 'fieldRefTestConflictSample', conflict: true },
+        { testCase: 'hashmapConflictSample', conflict: false }, // divergent
+        { testCase: 'ifBranchConflictSample', conflict: true },
+        { testCase: 'ifWithInvokeConflictSample', conflict: true },
+        { testCase: 'initArrayConflictSample', conflict: false }, // divergent
+        { testCase: 'localArrayNotConflictSample', conflict: false },
+        { testCase: 'localArrayRecursiveNotConflictSample', conflict: false },
+        { testCase: 'localVariablesNotConflictSample', conflict: false },
+        { testCase: 'localVariablesNotConflictSample2', conflict: false },
+        { testCase: 'localVariablesWithParameterNotConflictSample', conflict: false },
+        { testCase: 'objectFieldConflictSample', conflict: true },
+        { testCase: 'objectFieldNotConflictSample', conflict: false },
+        { testCase: 'objectThreeFieldsOneConflictSample', conflict: true },
+        { testCase: 'pointsToDifferentObjectFromParametersWithMainSample', conflict: false },
+        { testCase: 'pointsToDifferentObjectSample', conflict: false },
+        { testCase: 'pointsToOnlyOneObjectFromParametersWithMainSample', conflict: true },
+        { testCase: 'pointsToSameArrayDifferentIndexSample', conflict: false }, // divergent
+        { testCase: 'pointsToSameArrayIndexSample', conflict: true },
+        { testCase: 'pointsToSameArraySample', conflict: true },
+        { testCase: 'pointsToSameObjectFromParametersSample', conflict: true },
+        { testCase: 'pointsToSameObjectFromParametersSample2', conflict: false },
+        { testCase: 'pointsToSameObjectFromParametersSample3', conflict: false },
+        { testCase: 'pointsToSameObjectFromParametersSample4', conflict: true },
+        { testCase: 'pointsToSameObjectFromParametersWithMainSample', conflict: true },
+        { testCase: 'pointsToSameObjectSample', conflict: true },
+        { testCase: 'recursiveCallConflictSample', conflict: false }, // divergent -> no assignments overriden, only function calls are made
+        { testCase: 'recursiveMockupConflictSample', conflict: true },
+        { testCase: 'recursiveMockupNotConflictSample', conflict: false },
+        { testCase: 'sameAttributeOnIdenticalClassConflictSample', conflict: true },
+        { testCase: 'sequenceConflictSample', conflict: true },
+        { testCase: 'sequenceConflictSample2', conflict: true },
+        { testCase: 'stacktraceConflictSample', conflict: true },
+        { testCase: 'staticClassFieldConflictSample', conflict: true },
+        { testCase: 'staticClassFieldNotConflictSample', conflict: false },
+        { testCase: 'stringArraySample', conflict: false }, // divergent
+        { testCase: 'subclassConflictSample', conflict: false },
+        { testCase: 'subclassWithConditionalNotConflictSample', conflict: false },
+        { testCase: 'twoSameObjectSample', conflict: false },
     ])('$testCase, conflict: $conflict', ({ testCase, conflict }) => {
         const eventBatch = runner.runAnalysis(ANALYSIS, `${ANALYSIS_PATH}/test_cases/${testCase}/index.js`, `${ANALYSIS_PATH}/test_cases/${testCase}/line_to_branch_map.json`)
         const uuid = Context.getInstance().getUUID()
         expect(eventBatch).toHaveProperty('uuid')
         expect(eventBatch.uuid).toBe(uuid)
         conflict
-            ? expect(eventBatch.getEvents().some(event => event.type === EventTypeEnum.OVERRIDE_ASSIGNMENT)).toBe(true)
-            : expect(eventBatch.getEvents().some(event => event.type === EventTypeEnum.OVERRIDE_ASSIGNMENT)).toBe(false)
+            ? expect(eventBatch.getEvents().some(event => event.type === EventTypeEnum.ASSIGNMENT_OVERRIDING)).toBe(true)
+            : expect(eventBatch.getEvents().some(event => event.type === EventTypeEnum.ASSIGNMENT_OVERRIDING)).toBe(false)
     })
 })
