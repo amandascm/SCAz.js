@@ -3,12 +3,14 @@ const path = require('path')
 const fs = require('fs')
 const csvParser = require('csv-parser');
 const { execSync } = require('child_process');
-const { analyze } = require("./analyzer");
 const Logger = require('../logger')
 const { Git } = require('../utils/git')
 const { writeFile, deleteFile, localPathExists } = require('../utils/file');
+const { Runner } = require('./../runner')
+const AnalysisEnum = require('./../analyses/AnalysisEnum')
 
-const logger = new Logger('Reader')
+
+const logger = new Logger('Projects Runner')
 
 // Input and output file paths
 const inputFile = path.join(PROJECTS_DIR, 'project_cases.csv');
@@ -33,7 +35,7 @@ const rows = [];
 fs.createReadStream(inputFile)
   .pipe(csvParser({ separator: ';' }))
   .on('headers', (headerFields) => {
-    headerFields.push('Left lines', 'Right lines', 'Execution events', 'Execution event batch')
+    headerFields.push('left lines', 'right lines', 'execution events', 'execution event batch')
     fs.appendFileSync(outputCsvFile, `${Object.values(headerFields).join(';')}\n`);
     const tableHeader = `<thead><tr>${headerFields.map(header => `<th>${header}</th>`).join('')}</tr></thead>`;
     fs.appendFileSync(outputHtmlFile, tableHeader);
@@ -72,8 +74,6 @@ async function processRows(rows) {
     const projectName = row['project']
     const fileRelativePath = row['file path']
 
-    logger.log(`what is happening... ${row}`)
-
     const localProjectPath = path.join(PROJECTS_DIR, 'cloned_projects', projectName)
     const lineToBranchMapPath = path.join(localProjectPath, '..', `${mergeCommmit}-lineToBranchMap.json`)
     const filePath = path.join(localProjectPath, fileRelativePath)
@@ -93,22 +93,23 @@ async function processRows(rows) {
         lineToBranchMap[line] = 'R'
       }
       if (!(leftLines.length > 0 && rightLines.length > 0)) {
-        logger.log(`No lines extracted from merge for parents: ${projectName}, ${mergeCommmit}`)
+        logger.log(`${rowIndex} No lines extracted from merge for parents: ${projectName}, ${mergeCommmit}`)
         continue
       }
       installDependencies(localProjectPath)
       writeFile(lineToBranchMapPath, JSON.stringify(lineToBranchMap))
     } catch (err) {
-      logger.log(`Error on pre-analysis prep: ${err?.message}`)
+      logger.log(`${rowIndex} Error on pre-analysis prep: ${err?.message}`)
       continue
     }
     try {
-      const result = await analyze(filePath, lineToBranchMapPath)
-      if (result?.eventTypes && result?.eventBatch) {
+      const runner = Runner.getInstance()
+      const eventBatch = runner.runAnalysis(AnalysisEnum.ASSIGNMENT_OVERRIDING, filePath, lineToBranchMapPath)
+      if (eventBatch) {
         row.leftLines = leftLines
         row.rightLines = rightLines
-        row.event_types = result.eventTypes
-        row.eventBatch = JSON.stringify(result.eventBatch)
+        row.event_types = eventBatch?.events?.map(event => event.type)
+        row.eventBatch = JSON.stringify(eventBatch).replace(';', '.,')
         fs.appendFileSync(outputCsvFile, `${Object.values(row).join(';')}\n`);
         // Create an HTML table row
         const tableRow = `<tr>${Object.values(row).map(value => `<td>${value}</td>`).join('')}</tr>\n`;

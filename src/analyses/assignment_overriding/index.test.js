@@ -2,8 +2,9 @@ const { Runner } = require('../../runner')
 const { AVAILABLE_ANALYSES_DIR } = require('../../config')
 const { EventTypeEnum } = require('../../event')
 const Context = require('../../context')
+const AnalysisEnum = require('../AnalysisEnum')
 
-const ANALYSIS = 'override_assignment'
+const ANALYSIS = AnalysisEnum.ASSIGNMENT_OVERRIDING
 const ANALYSIS_PATH = `${AVAILABLE_ANALYSES_DIR}/${ANALYSIS}`
 
 const runner = new Runner()

@@ -1,6 +1,6 @@
-const { exec, execSync, spawnSync } = require('child_process')
+const { spawnSync } = require('child_process')
 const path = require('path')
-const { ALLOWED_CONFLICT_ANALYSES, BASE_DIR, AVAILABLE_ANALYSES_DIR } = require('./config')
+const { BASE_DIR, AVAILABLE_ANALYSES_DIR } = require('./config')
 const { listDirectoriesInBaseDir } = require('./utils/file')
 const { v4: uuidv4 } = require('uuid')
 const Context = require('./context')
@@ -23,43 +23,13 @@ class AnalysisUnit {
 
 class Runner {
   constructor () {
-    this.inputPath = undefined // Default value for inputPath
-    this.lineToBranchMapPath = undefined // Default value for lineToBranchMapPath
-    this.conflictAnalysisValue = undefined // Default value for conflictAnalysis
   }
 
-  runFromCLI = () => {
-    // Process command-line arguments
-    for (let i = 2; i < process.argv.length; i++) {
-      const arg = process.argv[i]
-      if (arg.startsWith('--inputPath=')) {
-        // Extract the value following '--inputPath'
-        this.inputPath = arg.substring('--inputPath='.length)
-      } else if (arg.startsWith('--lineToBranchMapPath=')) {
-        // Extract the value following '--lineToBranchMapPath'
-        this.lineToBranchMapPath = arg.substring('--lineToBranchMapPath='.length)
-      } else if (arg.startsWith('--conflictAnalysis=')) {
-        // Extract the value following '--conflictAnalysis'
-        const providedValue = arg.substring('--conflictAnalysis='.length)
-        if (ALLOWED_CONFLICT_ANALYSES.includes(providedValue)) {
-          this.conflictAnalysisValue = providedValue
-        }
-      }
+  static getInstance () {
+    if (!this.instance) {
+      this.instance = new Runner()
     }
-    if (!this.inputPath) {
-      throw Error('Invalid inputPath value provided.')
-    }
-    if (!this.lineToBranchMapPath) {
-      throw Error('Invalid lineToBranchMapPath value provided.')
-    }
-    if (!this.conflictAnalysisValue) {
-      logger.log('Invalid or missing conflictAnalysis value provided. Running all analyses...')
-    }
-
-    logger.log(`Input path value: ${this.inputPath}`)
-    logger.log(`Conflict analysis value: ${this.conflictAnalysisValue ?? 'all available'}`)
-    this.runAnalyses(this.conflictAnalysisValue, this.inputPath, this.lineToBranchMapPath)
-  
+    return this.instance
   }
 
   buildAnalysisUnit = (conflictAnalysis, inputPath, lineToBranchMapPath) => {
