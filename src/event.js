@@ -1,7 +1,7 @@
 const Context = require('./context')
 
 const EventTypeEnum = {
-    ASSIGNMENT_OVERRIDING: 'ASSIGNMENT_OVERRIDING_CONFLICT',
+    OVERRIDING_ASSIGNMENT: 'OVERRIDING_ASSIGNMENT_CONFLICT',
     ERROR: 'ERROR',
 }
 

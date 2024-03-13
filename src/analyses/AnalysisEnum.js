@@ -1,5 +1,5 @@
 const AnalysisEnum = {
-    ASSIGNMENT_OVERRIDING: 'assignment_overriding'
+    OVERRIDING_ASSIGNMENT: 'overriding_assignment'
 }
 
 module.exports = AnalysisEnum

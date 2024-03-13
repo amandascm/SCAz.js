@@ -4,12 +4,12 @@ const { EventTypeEnum } = require('../../event')
 const Context = require('../../context')
 const AnalysisEnum = require('../AnalysisEnum')
 
-const ANALYSIS = AnalysisEnum.ASSIGNMENT_OVERRIDING
+const ANALYSIS = AnalysisEnum.OVERRIDING_ASSIGNMENT
 const ANALYSIS_PATH = `${AVAILABLE_ANALYSES_DIR}/${ANALYSIS}`
 
 const runner = new Runner()
 
-describe('Override Assignment Analysis Test Cases', () => {
+describe('Overriding Assignment Analysis Test Cases', () => {
     test.each([
         { testCase: 'example', conflict: true },
         // { testCase: 'innerClassRecursiveNotConflictSample', conflict: true }, // ERRO
@@ -89,7 +89,7 @@ describe('Override Assignment Analysis Test Cases', () => {
         expect(eventBatch).toHaveProperty('uuid')
         expect(eventBatch.uuid).toBe(uuid)
         conflict
-            ? expect(eventBatch.getEvents().some(event => event.type === EventTypeEnum.ASSIGNMENT_OVERRIDING)).toBe(true)
-            : expect(eventBatch.getEvents().some(event => event.type === EventTypeEnum.ASSIGNMENT_OVERRIDING)).toBe(false)
+            ? expect(eventBatch.getEvents().some(event => event.type === EventTypeEnum.OVERRIDING_ASSIGNMENT)).toBe(true)
+            : expect(eventBatch.getEvents().some(event => event.type === EventTypeEnum.OVERRIDING_ASSIGNMENT)).toBe(false)
     })
 })

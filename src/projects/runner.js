@@ -104,7 +104,7 @@ async function processRows(rows) {
     }
     try {
       const runner = Runner.getInstance()
-      const eventBatch = runner.runAnalysis(AnalysisEnum.ASSIGNMENT_OVERRIDING, filePath, lineToBranchMapPath)
+      const eventBatch = runner.runAnalysis(AnalysisEnum.OVERRIDING_ASSIGNMENT, filePath, lineToBranchMapPath)
       if (eventBatch) {
         row.leftLines = leftLines
         row.rightLines = rightLines
