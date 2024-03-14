@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test:analyses": "jest src/*"
+    "test:analyses": "jest src/*",
+    "projects": "node src/projects/runner.js"
   },
   "keywords": [],
   "author": "",
