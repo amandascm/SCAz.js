@@ -6,7 +6,7 @@ class Occurrence {
         this.id = id
         this.name = name
         this.location = location
-        this.branch = LineToBranchMapper.getInstance().mapLocationToBranch(this.getLocation())
+        this.branch = LineToBranchMapper.getInstance().mapLocationEndLineToBranch(this.getLocation())
     }
 
     getId() {
@@ -30,7 +30,7 @@ class Occurrence {
     }
 
     getLine() {
-        return utils.getSourceFileCorrespondingLine(this.location)
+        return utils.getFileLocationEndLine(this.location)
     }
 
     setBranch(branch) {

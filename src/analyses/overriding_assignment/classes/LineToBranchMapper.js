@@ -15,11 +15,22 @@ class LineToBranchMapper {
         return this.linesBranchMap
     }
 
-    mapLocationToBranch(sourceFileLocation) {
+    mapLocationEndLineToBranch(sourceFileLocation) {
         if (utils.getSourceFilePath(sourceFileLocation) === this.inputFilePath) {
-            return this.linesBranchMap[utils.getSourceFileCorrespondingLine(sourceFileLocation)] ?? undefined
+            return this.linesBranchMap[utils.getFileLocationEndLine(sourceFileLocation)] ?? undefined
         }
         return undefined
+    }
+
+    mapLocationLineRangeToBranch(sourceFileLocation) {
+        let branch = undefined
+        if (utils.getSourceFilePath(sourceFileLocation) === this.inputFilePath) {
+            const [startLine, endLine] = utils.getFileLocationLines(sourceFileLocation)
+            for (let line = startLine; line <=endLine; line++) {
+                branch = this.linesBranchMap[line] ?? branch
+            }
+        }
+        return branch
     }
 
     static getInstance (linesBranchMap = {}) {
