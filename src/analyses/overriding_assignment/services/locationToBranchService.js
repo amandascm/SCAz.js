@@ -1,6 +1,6 @@
 const utils = require('./../utils')
 
-class LineToBranchMapper {
+class LocationToBranchService {
     constructor(linesBranchMap = {}) {
         this.linesBranchMap = linesBranchMap
         this.inputFilePath = undefined
@@ -35,11 +35,11 @@ class LineToBranchMapper {
 
     static getInstance (linesBranchMap = {}) {
         if (!this.instance) {
-            this.instance = new LineToBranchMapper(linesBranchMap)
+            this.instance = new LocationToBranchService(linesBranchMap)
         }
         return this.instance
     }
 
 }
 
-module.exports = LineToBranchMapper
+module.exports = LocationToBranchService

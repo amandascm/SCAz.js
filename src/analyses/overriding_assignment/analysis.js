@@ -7,10 +7,10 @@
 */
 
 (function (sandbox) {
-    const { Assignment, FunctionCall, LineToBranchMapper } = require('./classes')
-    const { OverridingAssignmentController, AssignmentController } = require('./controllers')
+    const { Assignment, FunctionCall } = require('./models')
+    const { AssignmentService, OverridingAssignmentService, LocationToBranchService } = require('./services')
     const { EventController, Event, EventTypeEnum } = require('../../event');
-    const BranchEnum = require('./classes/BranchEnum')
+    const BranchEnum = require('./models/BranchEnum')
 
     if (!J$.initParams.extraParams) {
         throw new Error('No extraParams and lines to branch map provided')
@@ -25,12 +25,12 @@
     // Input: represents all lines that came from Left (L) or Right (R) branches - the rest is assumed to be from base
     const LINE_TO_BRANCH_MAP = require(extraParamsObject.lineToBranchMapPath)
     const INPUT_FILE_PATH = extraParamsObject.inputFilePath
-    LineToBranchMapper.getInstance().setLineToBranchMap(LINE_TO_BRANCH_MAP, INPUT_FILE_PATH)
+    LocationToBranchService.getInstance().setLineToBranchMap(LINE_TO_BRANCH_MAP, INPUT_FILE_PATH)
 
     function OverridingAssignmentAnalysis() {
 
-        const overridingAssignmentController = new OverridingAssignmentController()
-        const assignmentController = new AssignmentController()
+        const overridingAssignmentService = new OverridingAssignmentService()
+        const assignmentService = new AssignmentService()
 
         this.invokeFunPre = function (iid, f, base, args, isConstructor, isMethod, functionIid, functionSid) {
             const location = J$.iidToLocation(J$.sid, iid)
@@ -93,40 +93,40 @@
                     offsets.filter((offset) => base[offset] !== sortedArray[offset])
                 }
                 for (let offset of offsets) {
-                    overridingAssignmentController.assignmentHandler(new Assignment(actualObjectId, offset, location))
-                    assignmentController.assignmentHandler(new Assignment(actualObjectId, offset, location))
+                    overridingAssignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location))
+                    assignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location))
                 }
             }
-            overridingAssignmentController.functionHandler(new FunctionCall(functionIid, f.name, location, true))
+            overridingAssignmentService.functionHandler(new FunctionCall(functionIid, f.name, location, true))
         };
 
         this.invokeFun = function (iid, f, base, args, result, isConstructor, isMethod, functionIid, functionSid) {
             const location = J$.iidToLocation(J$.sid, iid)
-            overridingAssignmentController.functionHandler(new FunctionCall(functionIid, f.name, location, false))
+            overridingAssignmentService.functionHandler(new FunctionCall(functionIid, f.name, location, false))
         };
 
         this.putFieldPre = function (iid, base, offset, val, isComputed, isOpAssign) {
             const actualObjectId = sandbox.smemory.getIDFromShadowObjectOrFrame(sandbox.smemory.getShadowObject(base, offset, false).owner)
             const location = J$.iidToLocation(J$.sid, iid)
 
-            overridingAssignmentController.assignmentHandler(new Assignment(actualObjectId, offset, location, true))
-            assignmentController.assignmentHandler(new Assignment(actualObjectId, offset, location, true))
+            overridingAssignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location, true))
+            assignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location, true))
         };
 
         this.write = function (iid, name, val, lhs, isGlobal, isScriptLocal) {
             const frameId = sandbox.smemory.getIDFromShadowObjectOrFrame(sandbox.smemory.getShadowFrame(name))
             const location = J$.iidToLocation(J$.sid, iid)
 
-            overridingAssignmentController.assignmentHandler(new Assignment(frameId, name, location))
-            assignmentController.assignmentHandler(new Assignment(frameId, name, location))
+            overridingAssignmentService.assignmentHandler(new Assignment(frameId, name, location))
+            assignmentService.assignmentHandler(new Assignment(frameId, name, location))
 
             return {result: val}
         };
 
         this.endExecution = function () {
-            const interferences = overridingAssignmentController.getInterferences()
-            const overridenTargetsCount = assignmentController.getOverridenTargetsAmount()
-            const overridenTargets = assignmentController.getOverridenTargets()
+            const interferences = overridingAssignmentService.getInterferences()
+            const overridenTargetsCount = assignmentService.getOverridenTargetsAmount()
+            const overridenTargets = assignmentService.getOverridenTargets()
             const eventBatch = EventController.buildBatch(
                 UUID, 
                 {overridenTargetsCount, overridenTargets},

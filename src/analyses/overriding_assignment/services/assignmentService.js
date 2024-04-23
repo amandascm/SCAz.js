@@ -1,4 +1,4 @@
-class AssignmentController {
+class AssignmentService {
     constructor() {
         this.assignmentSet = {}
         this.potentialOAInterferenceTargets = {}
@@ -30,4 +30,4 @@ class AssignmentController {
 
 }
 
-module.exports = AssignmentController
+module.exports = AssignmentService

@@ -1,8 +1,8 @@
 const {
     Assignment, FunctionCallStack, Interference
-} = require('../classes')
+} = require('../models')
 
-class OverridingAssignmentController {
+class OverridingAssignmentService {
     constructor() {
         this.branchAssignmentSets = {}
         this.functionCallStack = new FunctionCallStack()
@@ -86,4 +86,4 @@ class OverridingAssignmentController {
     }
 }
 
-module.exports = OverridingAssignmentController
+module.exports = OverridingAssignmentService

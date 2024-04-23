@@ -1,12 +1,12 @@
 const utils = require('./../utils')
-const LineToBranchMapper = require('./LineToBranchMapper')
+const LocationToBranchService = require('./../services/locationToBranchService')
 
 class Occurrence {
     constructor(id, name, location) {
         this.id = id
         this.name = name
         this.location = location
-        this.branch = LineToBranchMapper.getInstance().mapLocationEndLineToBranch(this.getLocation())
+        this.branch = LocationToBranchService.getInstance().mapLocationEndLineToBranch(this.getLocation())
     }
 
     getId() {
