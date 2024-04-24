@@ -2,8 +2,7 @@
 const config = {
     verbose: true,
     testPathIgnorePatterns: [
-        "/node_modules/",
-        "/cloned_projects/"
+        "/node_modules/"
     ]
 };
 

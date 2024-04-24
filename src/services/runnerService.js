@@ -1,11 +1,12 @@
 const { spawnSync } = require('child_process')
 const path = require('path')
-const { BASE_DIR, AVAILABLE_ANALYSES_DIR } = require('./config')
-const { listDirectoriesInBaseDir } = require('./utils/file')
+const { BASE_DIR, AVAILABLE_ANALYSES_DIR } = require('./../../config')
+const { listDirectoriesInBaseDir } = require('./../utils/file')
 const { v4: uuidv4 } = require('uuid')
-const Context = require('./context')
-const { EventController, Event, EventTypeEnum } = require('./event')
-const Logger = require('./logger')
+const Context = require('./../models/Context')
+const { Event, EventTypeEnum } = require('./../models/Event')
+const { EventService } = require('./eventService')
+const Logger = require('./../utils/logger')
 
 const logger = new Logger('Runner')
 
@@ -21,13 +22,13 @@ class AnalysisUnit {
   getUUID = () => this.uuid
 }
 
-class Runner {
+class RunnerService {
   constructor () {
   }
 
   static getInstance () {
     if (!this.instance) {
-      this.instance = new Runner()
+      this.instance = new RunnerService()
     }
     return this.instance
   }
@@ -48,7 +49,7 @@ class Runner {
     return new AnalysisUnit(
       conflictAnalysis,
       inputPath,
-      `node ${jalangiPath} --initParam extraParams:${extraParams} --inlineIID --inlineSource --analysis ${chainedAnalysesPath} --analysis ${smemoryAnalysisPath} --analysis ${path.join(AVAILABLE_ANALYSES_DIR, conflictAnalysis, 'analysis.js')} ${inputPath}`,
+      `node ${jalangiPath} --initParam extraParams:${extraParams} --inlineIID --inlineSource --analysis ${chainedAnalysesPath} --analysis ${smemoryAnalysisPath} --analysis ${path.join(AVAILABLE_ANALYSES_DIR, conflictAnalysis, 'index.js')} ${inputPath}`,
       uuid
     )
   }
@@ -59,7 +60,7 @@ class Runner {
       const result = spawnSync(analysisUnit.command.split(' ')[0], analysisUnit.command.split(' ').filter((_, i) => i !== 0), { encoding: 'utf-8', timeout: 120000 });
       if (result.status != null && result.status === 0 && result.stdout) {
         logger.log(`Output: ${result.stdout}`)
-        const eventBatch = EventController.recoverBatchFromString(result.stdout)
+        const eventBatch = EventService.recoverBatchFromString(result.stdout)
         logger.log(`Output Event Batch: ${JSON.stringify(eventBatch)}`);
         return eventBatch
       } else {
@@ -70,7 +71,7 @@ class Runner {
         }
       }
     } catch (error) {
-      const eventBatch = EventController.buildBatch(
+      const eventBatch = EventService.buildBatch(
           Context.getInstance().getUUID(),
           {},
           [new Event(EventTypeEnum.ERROR, `Error`,`${error?.message}`)]
@@ -79,7 +80,7 @@ class Runner {
       return eventBatch
     }
     logger.log('Nothing happened')
-    return EventController.buildBatch(
+    return EventService.buildBatch(
       Context.getInstance().getUUID(),
       {},
       []
@@ -119,6 +120,6 @@ class Runner {
 // runner.runFromCLI()
 
 module.exports = {
-  Runner
+  RunnerService
 }
 

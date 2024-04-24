@@ -9,7 +9,8 @@
 (function (sandbox) {
     const { Assignment, FunctionCall } = require('./models')
     const { AssignmentService, OverridingAssignmentService, LocationToBranchService } = require('./services')
-    const { EventController, Event, EventTypeEnum } = require('../../event');
+    const { Event, EventTypeEnum } = require('../../models/Event');
+    const { EventService } = require('../../services/eventService')
     const BranchEnum = require('./models/BranchEnum')
 
     if (!J$.initParams.extraParams) {
@@ -127,7 +128,7 @@
             const interferences = overridingAssignmentService.getInterferences()
             const overridenTargetsCount = assignmentService.getOverridenTargetsAmount()
             const overridenTargets = assignmentService.getOverridenTargets()
-            const eventBatch = EventController.buildBatch(
+            const eventBatch = EventService.buildBatch(
                 UUID, 
                 {overridenTargetsCount, overridenTargets},
                 interferences.map(interference => {
@@ -136,7 +137,7 @@
                         interference
                 })
             }))
-            console.log(EventController.batchToRecoverableString(eventBatch))
+            console.log(EventService.batchToRecoverableString(eventBatch))
         };
     }
 

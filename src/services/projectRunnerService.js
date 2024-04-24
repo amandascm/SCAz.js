@@ -1,26 +1,26 @@
-const { PROJECTS_DIR } = require("../config");
+const { DATA_DIR, DATA_INPUT_DIR, DATA_OUTPUT_DIR } = require("../../config");
 const path = require('path')
 const fs = require('fs')
 const csvParser = require('csv-parser');
 const { execSync } = require('child_process');
-const Logger = require('../logger')
+const Logger = require('../utils/logger')
 const { Git } = require('../utils/git')
 const { writeFile, deleteFile, localPathExists } = require('../utils/file');
-const { Runner } = require('./../runner')
-const AnalysisEnum = require('./../analyses/AnalysisEnum')
+const { RunnerService } = require('./runnerService')
+const AnalysisEnum = require('./../models/AnalysisEnum')
 
 
 const logger = new Logger('Projects Runner')
 
 // Input and output file paths
-const inputFile = path.join(PROJECTS_DIR, 'project_cases.csv');
-const outputCsvFile = path.join(PROJECTS_DIR, 'output.csv');
-const outputHtmlFile = path.join(PROJECTS_DIR, 'output.html');
+const inputFile = path.join(DATA_INPUT_DIR, 'project_cases.csv');
+const outputCsvFile = path.join(DATA_OUTPUT_DIR, 'output.csv');
+const outputHtmlFile = path.join(DATA_OUTPUT_DIR, 'output.html');
 
 // individual
-// const inputFile = path.join(PROJECTS_DIR, 'test_individual_case.csv');
-// const outputCsvFile = path.join(PROJECTS_DIR,'output_individual.csv');
-// const outputHtmlFile = path.join(PROJECTS_DIR,'output_individual.html');
+// const inputFile = path.join(DATA_INPUT_DIR, 'test_individual_case.csv');
+// const outputCsvFile = path.join(DATA_OUTPUT_DIR,'output_individual.csv');
+// const outputHtmlFile = path.join(DATA_OUTPUT_DIR,'output_individual.html');
 
 // Create or overwrite the HTML file
 fs.writeFileSync(outputHtmlFile, '<html><head><style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }</style></head><body><table>\n');
@@ -74,7 +74,7 @@ async function processRows(rows) {
     const projectName = row['project']
     const fileRelativePath = row['file path']
 
-    const localProjectPath = path.join(PROJECTS_DIR, 'cloned_projects', projectName)
+    const localProjectPath = path.join(DATA_DIR, 'cloned_projects', projectName)
     const lineToBranchMapPath = path.join(localProjectPath, '..', `${mergeCommmit}-lineToBranchMap.json`)
     const filePath = path.join(localProjectPath, fileRelativePath)
 
@@ -103,7 +103,7 @@ async function processRows(rows) {
       continue
     }
     try {
-      const runner = Runner.getInstance()
+      const runner = RunnerService.getInstance()
       const eventBatch = runner.runAnalysis(AnalysisEnum.OVERRIDING_ASSIGNMENT, filePath, lineToBranchMapPath)
       if (eventBatch) {
         row.leftLines = leftLines

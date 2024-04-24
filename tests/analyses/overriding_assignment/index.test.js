@@ -1,13 +1,13 @@
-const { Runner } = require('../../runner')
-const { AVAILABLE_ANALYSES_DIR } = require('../../config')
-const { EventTypeEnum } = require('../../event')
-const Context = require('../../context')
-const AnalysisEnum = require('../AnalysisEnum')
+const { RunnerService } = require('../../../src/services/runnerService')
+const { AVAILABLE_ANALYSES_DIR } = require('../../../config')
+const { EventTypeEnum } = require('../../../src/models/Event')
+const Context = require('../../../src/models/Context')
+const AnalysisEnum = require('../../../src/models/AnalysisEnum')
 
 const ANALYSIS = AnalysisEnum.OVERRIDING_ASSIGNMENT
 const ANALYSIS_PATH = `${AVAILABLE_ANALYSES_DIR}/${ANALYSIS}`
 
-const runner = new Runner()
+const runner = new RunnerService()
 
 describe('Overriding Assignment Analysis Test Cases', () => {
     test.each([
