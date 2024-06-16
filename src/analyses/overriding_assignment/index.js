@@ -35,6 +35,7 @@
 
         this.invokeFunPre = function (iid, f, base, args, isConstructor, isMethod, functionIid, functionSid) {
             const location = J$.iidToLocation(J$.sid, iid)
+            const branch = LocationToBranchService.getInstance().mapLocationLineRangeToBranch(location)
 
             if (isMethod && base instanceof Array) {
                 const actualObjectId = sandbox.smemory.getIDFromShadowObjectOrFrame(sandbox.smemory.getShadowObject(base, false).owner)
@@ -94,32 +95,36 @@
                     offsets.filter((offset) => base[offset] !== sortedArray[offset])
                 }
                 for (let offset of offsets) {
-                    overridingAssignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location))
-                    assignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location))
+                    overridingAssignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location, branch))
+                    assignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location, branch))
                 }
             }
-            overridingAssignmentService.functionHandler(new FunctionCall(functionIid, f.name, location, true))
+            const functionCallBranch = LocationToBranchService.getInstance().mapLocationEndLineToBranch(location)
+            overridingAssignmentService.functionHandler(new FunctionCall(functionIid, f.name, location, functionCallBranch, true))
         };
 
         this.invokeFun = function (iid, f, base, args, result, isConstructor, isMethod, functionIid, functionSid) {
             const location = J$.iidToLocation(J$.sid, iid)
-            overridingAssignmentService.functionHandler(new FunctionCall(functionIid, f.name, location, false))
+            const functionCallBranch = LocationToBranchService.getInstance().mapLocationEndLineToBranch(location)
+            overridingAssignmentService.functionHandler(new FunctionCall(functionIid, f.name, location, functionCallBranch, false))
         };
 
         this.putFieldPre = function (iid, base, offset, val, isComputed, isOpAssign) {
             const actualObjectId = sandbox.smemory.getIDFromShadowObjectOrFrame(sandbox.smemory.getShadowObject(base, offset, false).owner)
             const location = J$.iidToLocation(J$.sid, iid)
+            const branch = LocationToBranchService.getInstance().mapLocationLineRangeToBranch(location)
 
-            overridingAssignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location, true))
-            assignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location, true))
+            overridingAssignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location, branch, true))
+            assignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location, branch, true))
         };
 
         this.write = function (iid, name, val, lhs, isGlobal, isScriptLocal) {
             const frameId = sandbox.smemory.getIDFromShadowObjectOrFrame(sandbox.smemory.getShadowFrame(name))
             const location = J$.iidToLocation(J$.sid, iid)
+            const branch = LocationToBranchService.getInstance().mapLocationLineRangeToBranch(location)
 
-            overridingAssignmentService.assignmentHandler(new Assignment(frameId, name, location))
-            assignmentService.assignmentHandler(new Assignment(frameId, name, location))
+            overridingAssignmentService.assignmentHandler(new Assignment(frameId, name, location, branch))
+            assignmentService.assignmentHandler(new Assignment(frameId, name, location, branch))
 
             return {result: val}
         };

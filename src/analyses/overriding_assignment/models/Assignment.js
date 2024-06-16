@@ -1,12 +1,10 @@
 const Occurrence = require('./Occurrence')
-const LocationToBranchService = require('./../services/locationToBranchService')
 
 class Assignment extends Occurrence {
-    constructor(frameOrObjectID, nameOrField, location, isObjectField = false, functionCallStack = undefined) {
-        super(frameOrObjectID, nameOrField, location)
+    constructor(frameOrObjectID, nameOrField, location, branch, isObjectField = false, functionCallStack = undefined) {
+        super(frameOrObjectID, nameOrField, location, branch)
         this.isObject = isObjectField
         this.functionCallStack = functionCallStack
-        this.branch = LocationToBranchService.getInstance().mapLocationLineRangeToBranch(this.getLocation())
     }
 
     describe () {

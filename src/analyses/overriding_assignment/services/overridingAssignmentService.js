@@ -1,5 +1,5 @@
 const {
-    Assignment, FunctionCallStack, Interference
+    FunctionCallStack, Interference
 } = require('../models')
 
 class OverridingAssignmentService {
@@ -25,8 +25,7 @@ class OverridingAssignmentService {
                 assignment.setBranch(functionCallStackCurrentBranch)
             }
             if (functionCallStackCurrentBranch !== assignment.getBranch()){
-                const propagatedFunctionAssignment = new Assignment(assignment.getId(), assignment.getName(), assignment.getLocation(), undefined, this.functionCallStack.getCurrentStack())
-                propagatedFunctionAssignment.setBranch(functionCallStackCurrentBranch)
+                const propagatedFunctionAssignment = new Assignment(assignment.getId(), assignment.getName(), assignment.getLocation(), functionCallStackCurrentBranch, undefined, this.functionCallStack.getCurrentStack())
                 this.assignmentHandler(propagatedFunctionAssignment)
             }
         }
