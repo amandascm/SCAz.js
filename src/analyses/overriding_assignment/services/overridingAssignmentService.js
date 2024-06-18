@@ -24,10 +24,10 @@ class OverridingAssignmentService {
             if (!assignment.getBranch()) {
                 assignment.setBranch(functionCallStackCurrentBranch)
             }
-            if (functionCallStackCurrentBranch !== assignment.getBranch()){
-                const propagatedFunctionAssignment = new Assignment(assignment.getId(), assignment.getName(), assignment.getLocation(), functionCallStackCurrentBranch, undefined, this.functionCallStack.getCurrentStack())
-                this.assignmentHandler(propagatedFunctionAssignment)
-            }
+            // if (functionCallStackCurrentBranch !== assignment.getBranch()){
+            //     const propagatedFunctionAssignment = new Assignment(assignment.getId(), assignment.getName(), assignment.getLocation(), functionCallStackCurrentBranch, undefined, this.functionCallStack.getCurrentStack())
+            //     this.assignmentHandler(propagatedFunctionAssignment)
+            // }
         }
     }
 

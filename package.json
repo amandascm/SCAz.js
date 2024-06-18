@@ -7,7 +7,7 @@
     "pretest:analyses": "if [ ! -d \"jalangi2/node_modules\" ]; then cd jalangi2 && npm i && cd ..; fi",
     "test:analyses": "jest tests/*",
     "preprojects": "if [ ! -d \"jalangi2/node_modules\" ]; then cd jalangi2 && npm i && cd ..; fi",
-    "projects": "node src/projects/runner.js"
+    "projects": "node src/scripts/projectScenarios.js"
   },
   "keywords": [],
   "author": "",

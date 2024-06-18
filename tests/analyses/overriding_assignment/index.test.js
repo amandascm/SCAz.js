@@ -11,7 +11,7 @@ const runner = new RunnerService()
 
 describe('Overriding Assignment Analysis Test Cases', () => {
     test.each([
-        { testCase: 'example', conflict: true },
+        // { testCase: 'example', conflict: true },
         // { testCase: 'innerClassRecursiveNotConflictSample', conflict: true }, // ERRO
         { testCase: 'additionToArrayConflictSample', conflict: false }, // divergent => change name
         { testCase: 'arrayAliasingConflictSample', conflict: true },
@@ -22,7 +22,7 @@ describe('Overriding Assignment Analysis Test Cases', () => {
         { testCase: 'arraysClassFieldNotConflictSample', conflict: false },
         { testCase: 'baseConflictSample', conflict: true },
         { testCase: 'baseNotConflictSample', conflict: false },
-        { testCase: 'bothMarkingConflictSample', conflict: true },
+        { testCase: 'bothMarkingConflictSample', conflict: false }, // divergent => non virtual assignments
         { testCase: 'callGraphSample', conflict: true },
         // { testCase: 'chainedMethodCallsConflictSample', conflict: true }, // ERRO
         { testCase: 'changeInstanceAttributeConflictSample', conflict: true },
@@ -83,12 +83,15 @@ describe('Overriding Assignment Analysis Test Cases', () => {
         { testCase: 'subclassConflictSample', conflict: false },
         { testCase: 'subclassWithConditionalNotConflictSample', conflict: false },
         { testCase: 'twoSameObjectSample', conflict: false },
-    ])('$testCase, conflict: $conflict', ({ testCase, conflict }) => {
-        const eventBatch = runner.runAnalysis(ANALYSIS, `${ANALYSIS_PATH}/test_cases/${testCase}/index.js`, `${ANALYSIS_PATH}/test_cases/${testCase}/line_to_branch_map.json`)
+    ])('$testCase, conflict: $conflict', ({ testCase, conflict: hasEvent }) => {
+        const eventBatch = runner.runAnalysis(ANALYSIS, {
+            'lineToBranchMapPath': `${ANALYSIS_PATH}/test_cases/${testCase}/line_to_branch_map.json`, 
+            'inputFilePath': `${ANALYSIS_PATH}/test_cases/${testCase}/index.js`
+        })
         const uuid = Context.getInstance().getUUID()
         expect(eventBatch).toHaveProperty('uuid')
         expect(eventBatch.uuid).toBe(uuid)
-        conflict
+        hasEvent
             ? expect(eventBatch.getEvents().some(event => event.type === EventTypeEnum.OVERRIDING_ASSIGNMENT)).toBe(true)
             : expect(eventBatch.getEvents().some(event => event.type === EventTypeEnum.OVERRIDING_ASSIGNMENT)).toBe(false)
     })

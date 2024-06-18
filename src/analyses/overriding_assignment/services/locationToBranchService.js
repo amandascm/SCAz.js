@@ -6,7 +6,7 @@ class LocationToBranchService {
         this.inputFilePath = undefined
     }
 
-    setLineToBranchMap(linesBranchMap, inputFilePath) {
+    setInputs(linesBranchMap, inputFilePath) {
         this.linesBranchMap = linesBranchMap
         this.inputFilePath = inputFilePath
     }

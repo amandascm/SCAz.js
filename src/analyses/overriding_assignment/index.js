@@ -9,24 +9,20 @@
 (function (sandbox) {
     const { Assignment, FunctionCall } = require('./models')
     const { AssignmentService, OverridingAssignmentService, LocationToBranchService } = require('./services')
-    const { Event, EventTypeEnum } = require('../../models/Event');
+    const { Event, EventTypeEnum } = require('../../models/Event')
     const { EventService } = require('../../services/eventService')
-    const BranchEnum = require('./models/BranchEnum')
+    const { AnalysisParamService } = require('../../services/analysisParamService')
 
     if (!J$.initParams.extraParams) {
-        throw new Error('No extraParams and lines to branch map provided')
+        throw new Error('No extraParams provided')
     }
+    const extraParamsObject = AnalysisParamService.decodeParams(J$.initParams.extraParams)
     
-    const extraParamsObject = {}
-    J$.initParams.extraParams.split('%').forEach(pair => {
-        const [key, val] = pair.split(',')
-        extraParamsObject[key] = val
-    })
     const UUID = extraParamsObject.UUID
     // Input: represents all lines that came from Left (L) or Right (R) branches - the rest is assumed to be from base
     const LINE_TO_BRANCH_MAP = require(extraParamsObject.lineToBranchMapPath)
     const INPUT_FILE_PATH = extraParamsObject.inputFilePath
-    LocationToBranchService.getInstance().setLineToBranchMap(LINE_TO_BRANCH_MAP, INPUT_FILE_PATH)
+    LocationToBranchService.getInstance().setInputs(LINE_TO_BRANCH_MAP, INPUT_FILE_PATH)
 
     function OverridingAssignmentAnalysis() {
 
