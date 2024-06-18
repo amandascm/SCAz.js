@@ -39,10 +39,7 @@ class RunnerService {
       if (result.status != null && result.status === 0 && result.stdout) {
         const eventBatch = EventService.recoverBatchFromString(result.stdout)
         logger.log(`Output Event Batch: ${JSON.stringify(eventBatch)}`);
-        if (eventBatch && elapsedTime) {
-          eventBatch.elapsedTime = elapsedTime
-        }
-        return eventBatch
+        return {eventBatch, elapsedTime}
       } else {
         if (result.error) {
           throw error
@@ -57,11 +54,11 @@ class RunnerService {
           [new Event(EventTypeEnum.ERROR, `Error`,`${error?.message}`)]
         )
         logger.log(`Error Event Batch: ${JSON.stringify(eventBatch)}`);
-      return eventBatch
+      return {eventBatch}
     }
   }
   
-  runAnalysis = (customAnalysis, params, countElapsedTime = false) => {
+  buildAnalysisExecutionUnit = (customAnalysis, params) => {
     let analysisExecutionUnit
     switch (customAnalysis) {
       case AnalysisEnum.OVERRIDING_ASSIGNMENT:
@@ -70,6 +67,11 @@ class RunnerService {
       default:
         analysisExecutionUnit = DefaultAnalysisStrategy.getInstance().buildExecutionUnit(params);
     }
+    return analysisExecutionUnit
+  }
+
+  runAnalysis = (customAnalysis, params, countElapsedTime = false) => {
+    const analysisExecutionUnit = this.buildAnalysisExecutionUnit(customAnalysis, params)
     logger.log(`\nStarting to run analysis: ${customAnalysis}...`)
     return this.runExecutionUnit(analysisExecutionUnit,countElapsedTime)
   }

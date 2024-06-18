@@ -105,26 +105,27 @@ async function processRows(rows) {
     try {
       const runner = RunnerService.getInstance()
 
-      const eventBatch = runner.runAnalysis(AnalysisEnum.OVERRIDING_ASSIGNMENT, {
+      const {eventBatch, elapsedTime} = runner.runAnalysis(AnalysisEnum.OVERRIDING_ASSIGNMENT, {
         'lineToBranchMapPath': lineToBranchMapPath,
         'inputFilePath': filePath
-      },)
+      }, true)
       if (eventBatch) {
         row.leftLines = leftLines
         row.rightLines = rightLines
         row.event_types = eventBatch?.events?.map(event => event.type)
         row.eventBatch = JSON.stringify(eventBatch).replace(';', '.,')
-        if (eventBatch?.data?.elapsedTime) {
-          row['oa analysis elapsed time'] = eventBatch?.data?.elapsedTime ?? undefined
 
-          const instrumented_exec_batch = runner.runAnalysis(undefined, {
-            'inputFilePath': filePath
-          }, true)
-          row['instrumented elapsed time'] = instrumented_exec_batch?.batch?.elapsedTime
+        row['oa analysis elapsed time'] = elapsedTime
 
-          const original_exec_res = runner.runProcess(`node ${filePath}`)
-          row['original elapsed time'] = original_exec_res?.elapsedTime
-        }
+        const default_jalangi_no_custom_analysis = runner.buildAnalysisExecutionUnit(undefined, {
+          'inputFilePath': filePath
+        })
+        const inst_exec_res = runner.runProcess(default_jalangi_no_custom_analysis.command, true)
+        row['instrumented elapsed time'] = inst_exec_res?.elapsedTime
+
+        const original_exec_res = runner.runProcess(`node ${filePath}`, true)
+        row['original elapsed time'] = original_exec_res?.elapsedTime
+
         fs.appendFileSync(outputCsvFile, `${Object.values(row).join(';')}\n`);
         // Create an HTML table row
         // const tableRow = `<tr>${Object.values(row).map(value => `<td>${value}</td>`).join('')}</tr>\n`;

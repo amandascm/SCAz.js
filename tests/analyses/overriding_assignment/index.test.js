@@ -84,7 +84,7 @@ describe('Overriding Assignment Analysis Test Cases', () => {
         { testCase: 'subclassWithConditionalNotConflictSample', conflict: false },
         { testCase: 'twoSameObjectSample', conflict: false },
     ])('$testCase, conflict: $conflict', ({ testCase, conflict: hasEvent }) => {
-        const eventBatch = runner.runAnalysis(ANALYSIS, {
+        const {eventBatch} = runner.runAnalysis(ANALYSIS, {
             'lineToBranchMapPath': `${ANALYSIS_PATH}/test_cases/${testCase}/line_to_branch_map.json`, 
             'inputFilePath': `${ANALYSIS_PATH}/test_cases/${testCase}/index.js`
         })
