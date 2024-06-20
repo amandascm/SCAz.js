@@ -36,7 +36,9 @@ class OverridingAssignmentAnalysisStrategy extends AnalysisStrategy {
         const chainedAnalysesPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'sample_analyses', 'ChainedAnalyses.js')
         const smemoryAnalysisPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'runtime', 'SMemory.js')
         // const traceAllAnalysisPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'sample_analyses', 'pldi16', 'TraceAll.js') //--analysis ${traceAllAnalysisPath}
-        const jalangiPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'commands', 'jalangi.js')
+        const jalangiPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'commands', 'direct.js')
+        const jalangiInstPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'commands', 'esnstrument_cli.js')
+        const instFilePath = path.join(path.dirname(params.inputFilePath), `${path.basename(params.inputFilePath, '.js')}_jalangi_.js`)
         const uuid = uuidv4()
         this._validateParams(params)
         const extraParams = AnalysisParamService.encodeParams({...params, UUID: uuid})
@@ -45,13 +47,15 @@ class OverridingAssignmentAnalysisStrategy extends AnalysisStrategy {
             params.inputFilePath,
             (`node ${jalangiPath} ` +
             `--initParam extraParams:${extraParams} ` +
-            `--inlineIID ` +
-            `--inlineSource ` +
             `--analysis ${chainedAnalysesPath} ` +
             `--analysis ${smemoryAnalysisPath} ` +
             `--analysis ${path.join(AVAILABLE_ANALYSES_DIR, this.identifier, 'index.js')} ` +
-            `${params.inputFilePath}`),
-            uuid
+            `${instFilePath}`),
+            uuid,
+            (`node ${jalangiInstPath} ` +
+            `--inlineIID ` +
+            `--inlineSource ` +
+            `${params.inputFilePath}`)
         )
     }
 }

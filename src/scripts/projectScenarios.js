@@ -61,10 +61,11 @@ function installDependencies(projectPath) {
 }
 
 // Process each row
-const currentCursor = 0
 async function processRows(rows) {
+  const currentCursor = 0
   logger.log(`Started processing rows from CSV... ${currentCursor}, ${rows.length}`)
   for (let rowIndex = currentCursor; rowIndex<rows.length; rowIndex++) {
+    logger.log(`Started processing row ${rowIndex}`)
     const row = rows[rowIndex]
     const repoUrl = row['repo url']
     const mergeCommmit = row['merge commit']
@@ -120,6 +121,7 @@ async function processRows(rows) {
         const default_jalangi_no_custom_analysis = runner.buildAnalysisExecutionUnit(undefined, {
           'inputFilePath': filePath
         })
+        runner.runProcess(default_jalangi_no_custom_analysis.precommand)
         const inst_exec_res = runner.runProcess(default_jalangi_no_custom_analysis.command, true)
         row['instrumented elapsed time'] = inst_exec_res?.elapsedTime
 

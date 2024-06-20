@@ -35,6 +35,7 @@ class RunnerService {
   runExecutionUnit = (executionUnit, countElapsedTime = false) => {
     logger.log(`\nRunning against: ${executionUnit.inputPath}`);
     try {
+      if (executionUnit.precommand) this.runProcess(executionUnit.precommand)
       const { result, elapsedTime } = this.runProcess(executionUnit.command, countElapsedTime)
       if (result.status != null && result.status === 0 && result.stdout) {
         const eventBatch = EventService.recoverBatchFromString(result.stdout)
