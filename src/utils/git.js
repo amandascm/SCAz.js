@@ -59,7 +59,7 @@ class Git {
 
     async getMergeFileLineToCommitMap(repoPath, mergeCommit, filePath) {
         try {
-            const result = await this.instance.cwd(repoPath).checkout(mergeCommit, ['--force']).raw(['blame', filePath, mergeCommit, '-M', `--abbrev=${this.config.blameShaSize}`])
+            const result = await this.instance.cwd(repoPath).checkout(mergeCommit, ['--force']).raw(['blame', filePath, mergeCommit, '-M', `--abbrev=${this.config.blameShaSize}`, '-w'])
             return this.parseBlameToCommitLineMap(result)
         } catch (err) {
             throw err
