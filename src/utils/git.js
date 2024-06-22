@@ -11,6 +11,9 @@ class Git {
             }
         };
         this.instance = simpleGit({...options})
+        this.config = {
+            blameShaSize: 10
+        }
     }
 
     static getInstance () {
@@ -56,7 +59,7 @@ class Git {
 
     async getMergeFileLineToCommitMap(repoPath, mergeCommit, filePath) {
         try {
-            const result = await this.instance.cwd(repoPath).checkout(mergeCommit, ['--force']).raw(['blame', filePath, mergeCommit, '-M'])
+            const result = await this.instance.cwd(repoPath).checkout(mergeCommit, ['--force']).raw(['blame', filePath, mergeCommit, '-M', `--abbrev=${this.config.blameShaSize}`])
             return this.parseBlameToCommitLineMap(result)
         } catch (err) {
             throw err
@@ -68,7 +71,7 @@ class Git {
         const parentBranchCommits = await this.getCommitsBetweenCommits(repoPath, ancestorCommit, parentCommit)
         const mergeLinesAffectedByParent = []
         for (const commit of parentBranchCommits) {
-            const mergeLinesAffectedByCommit = mergeCommitsToLinesMap[commit] ?? mergeCommitsToLinesMap[commit.slice(0,8)] ?? mergeCommitsToLinesMap[commit.slice(0,7)]
+            const mergeLinesAffectedByCommit = mergeCommitsToLinesMap[commit.slice(0,(this.config.blameShaSize + 1))] ?? mergeCommitsToLinesMap[commit]
             if (mergeLinesAffectedByCommit?.length > 0) {
                 mergeLinesAffectedByParent.push(...mergeLinesAffectedByCommit)
             }
