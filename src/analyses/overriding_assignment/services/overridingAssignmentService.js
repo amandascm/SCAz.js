@@ -31,13 +31,26 @@ class OverridingAssignmentService {
         }
     }
 
-    _assignmentExistsOnOtherBranch(assignment) {
+    _hasAssignedDifferentValues(prevVal, currVal) {
+        const types = ['number', 'string', 'boolean', 'undefined'];
+        if (types.includes(typeof prevVal) || types.includes(typeof currVal)) {
+            return prevVal !== currVal
+        } else {
+            // We could possibly compare objects differently, but for now we assume that different references are different objects
+            return prevVal !== currVal
+        }
+    }
+
+    _assignmenteInterfereWithOtherBranch(assignment) {
         const assignmentIdentifier = assignment.getLHSIdentifier()
         const currentBranch = assignment.getBranch()
 
         for (let branch of Object.keys(this.branchAssignmentSets)) {
             if (branch !== currentBranch && this.branchAssignmentSets[branch][assignmentIdentifier]) {
-                return new Interference(this.branchAssignmentSets[branch][assignmentIdentifier], assignment)
+                const previousAssignment = this.branchAssignmentSets[branch][assignmentIdentifier]
+                if (this._hasAssignedDifferentValues(previousAssignment.getVal(), assignment.getVal())) {
+                    return new Interference(this.branchAssignmentSets[branch][assignmentIdentifier], assignment)
+                }
             }
         }
 
@@ -66,7 +79,7 @@ class OverridingAssignmentService {
         this._updateAssignBranchBasedOnFunctionStack(assignment)
         const currentBranch = assignment.getBranch()
         if (currentBranch) {
-            const interference = this._assignmentExistsOnOtherBranch(assignment)
+            const interference = this._assignmenteInterfereWithOtherBranch(assignment)
             if (interference) {
                 this.interferences.push(interference)
             }

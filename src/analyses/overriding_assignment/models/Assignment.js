@@ -1,10 +1,11 @@
 const Occurrence = require('./Occurrence')
 
 class Assignment extends Occurrence {
-    constructor(frameOrObjectID, nameOrField, location, branch, isObjectField = false, functionCallStack = undefined) {
+    constructor(frameOrObjectID, nameOrField, location, branch, isObjectField = false, functionCallStack = undefined, val = undefined) {
         super(frameOrObjectID, nameOrField, location, branch)
         this.isObject = isObjectField
         this.functionCallStack = functionCallStack
+        this.val = val
     }
 
     describe () {
@@ -13,6 +14,10 @@ class Assignment extends Occurrence {
 
     setFunctionCallStack (functionCallStack) {
         this.functionCallStack = functionCallStack
+    }
+
+    getVal () {
+        return this.val
     }
 }
 
