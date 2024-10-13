@@ -110,7 +110,7 @@
             const location = J$.iidToLocation(J$.sid, iid)
             const branch = LocationToBranchService.getInstance().mapLocationLineRangeToBranch(location)
 
-            overridingAssignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location, branch, true))
+            overridingAssignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location, branch, true, undefined, val))
             assignmentService.assignmentHandler(new Assignment(actualObjectId, offset, location, branch, true))
         };
 
@@ -119,7 +119,7 @@
             const location = J$.iidToLocation(J$.sid, iid)
             const branch = LocationToBranchService.getInstance().mapLocationLineRangeToBranch(location)
 
-            overridingAssignmentService.assignmentHandler(new Assignment(frameId, name, location, branch))
+            overridingAssignmentService.assignmentHandler(new Assignment(frameId, name, location, branch, undefined, undefined, val))
             assignmentService.assignmentHandler(new Assignment(frameId, name, location, branch))
 
             return {result: val}

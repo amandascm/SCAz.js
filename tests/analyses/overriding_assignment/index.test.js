@@ -37,7 +37,7 @@ describe('Overriding Assignment Analysis Test Cases', () => {
         { testCase: 'classFieldConflictSample2', conflict: true },
         { testCase: 'classFieldNotConflictSample', conflict: false },
         { testCase: 'classFieldNotConflictSample2', conflict: false },
-        { testCase: 'classFieldWithParameterNotConflictSample', conflict: true },
+        { testCase: 'classFieldWithParameterNotConflictSample', conflict: false }, // same values assigned
         { testCase: 'concatMethodsConflictSample', conflict: true },
         { testCase: 'containmentSample', conflict: true },
         { testCase: 'containsInvokeExpConflictSample', conflict: true },
