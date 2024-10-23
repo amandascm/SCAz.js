@@ -6,6 +6,8 @@ const Logger = require('./../utils/logger')
 const AnalysisEnum = require('../models/AnalysisEnum')
 const OverridingAssignmentAnalysisStrategy = require('../strategies/analysisStrategy/OverridingAssignmentAnalysisStrategy')
 const DefaultAnalysisStrategy = require('../strategies/analysisStrategy/DefaultAnalysisStrategy')
+const path = require('path')
+const { BASE_DIR } = require('../../config')
 
 const logger = new Logger('Runner')
 class RunnerService {
@@ -75,6 +77,43 @@ class RunnerService {
     const analysisExecutionUnit = this.buildAnalysisExecutionUnit(customAnalysis, params)
     logger.log(`\nStarting to run analysis: ${customAnalysis}...`)
     return this.runExecutionUnit(analysisExecutionUnit,countElapsedTime)
+  }
+
+  runAnalysisRaw = (inputFilePath, analysisPath) => {
+    const chainedAnalysesPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'sample_analyses', 'ChainedAnalyses.js')
+    const smemoryAnalysisPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'runtime', 'SMemory.js')
+    const jalangiPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'commands', 'direct.js')
+    const jalangiInstPath = path.join(BASE_DIR, 'jalangi2', 'src', 'js', 'commands', 'esnstrument_cli.js')
+    const instFilePath = path.join(path.dirname(inputFilePath), `${path.basename(inputFilePath, '.js')}_jalangi_.js`)
+
+    const instrumentationCommand = (`node ${jalangiInstPath} ` +
+      `--inlineIID ` +
+      `--inlineSource ` +
+      `${inputFilePath}`)
+    const runAnalysisCommand = (`node ${jalangiPath} ` +
+      `--analysis ${chainedAnalysesPath} ` +
+      `--analysis ${smemoryAnalysisPath} ` +
+      `--analysis ${analysisPath} ` +
+      `${instFilePath}`)
+
+      logger.log(`\nRunning against: ${inputFilePath}`);
+      try {
+        this.runProcess(instrumentationCommand)
+        const { result, elapsedTime } = this.runProcess(runAnalysisCommand)
+        if (result.status != null && result.status === 0 && result.stdout) {
+          logger.log(`Execution stdout: \n${result.stdout}`);
+          return
+        } else {
+          logger.log(`Execution error!`);
+          if (result.error) {
+            throw error
+          } else {
+            throw new Error(result.stderr)
+          }
+        }
+      } catch (error) {
+        logger.log(`Could not execute analysis, error: ${error?.message} ${error}`);
+      }
   }
 }
 
